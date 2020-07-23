@@ -82,6 +82,12 @@ func _physics_process(delta):
 					for i in range(to_correct_index, moves.size()):
 						var m = moves[i]
 						_move(m.direction, m.delta)
+					if move_corrections.empty():
+						.force_update_transform()
+						current_pos = global_transform.origin
+					
+			var move = { direction = direction, tick = tick, delta = delta }
+			moves.append(move)
 			rpc_unreliable_id(1, "request_move", move, current_pos)
 		else:
 			rpc_unreliable("update_puppet", direction, current_pos)
