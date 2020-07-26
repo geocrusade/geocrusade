@@ -1,0 +1,143 @@
+[gd_scene load_steps=2 format=2]
+
+[ext_resource path="res://src/ArenaMatchMakerUI.gd" type="Script" id=1]
+
+[node name="ArenaMatchMakerUI" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource( 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="FindPanel" type="Panel" parent="."]
+margin_right = 275.0
+margin_bottom = 75.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Title" type="Label" parent="FindPanel"]
+margin_top = 5.0
+margin_right = 250.0
+text = "Find Arena Match"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Find1v1" type="Button" parent="FindPanel"]
+margin_left = 8.99999
+margin_top = 39.0
+margin_right = 84.0
+margin_bottom = 64.0
+text = "1v1"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Find2v2" type="Button" parent="FindPanel"]
+margin_left = 97.0
+margin_top = 38.0
+margin_right = 172.0
+margin_bottom = 63.0
+text = "2v2"
+
+[node name="Find3v3" type="Button" parent="FindPanel"]
+margin_left = 185.0
+margin_top = 39.0
+margin_right = 260.0
+margin_bottom = 64.0
+text = "3v3"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="SearchingPanel" type="Panel" parent="."]
+visible = false
+margin_right = 200.0
+margin_bottom = 75.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="MatchType" type="Label" parent="SearchingPanel"]
+margin_top = 5.0
+margin_right = 200.0
+text = "2V2"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Status" type="Label" parent="SearchingPanel"]
+margin_top = 25.0
+margin_right = 200.0
+text = "Searching for other players..."
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Cancel" type="Button" parent="SearchingPanel"]
+margin_top = 50.0
+margin_right = 200.0
+margin_bottom = 70.0
+text = "Cancel"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="MatchFoundPanel" type="Panel" parent="."]
+visible = false
+margin_right = 200.0
+margin_bottom = 75.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Title" type="Label" parent="MatchFoundPanel"]
+margin_top = 5.0
+margin_right = 200.0
+text = "Match Ready"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="TimeRemaining" type="Label" parent="MatchFoundPanel"]
+margin_top = 25.0
+margin_right = 200.0
+text = "60"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Cancel" type="Button" parent="MatchFoundPanel"]
+margin_left = 14.0
+margin_top = 38.0
+margin_right = 89.0
+margin_bottom = 63.0
+text = "Cancel"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Join" type="Button" parent="MatchFoundPanel"]
+margin_left = 109.0
+margin_top = 39.0
+margin_right = 184.0
+margin_bottom = 64.0
+text = "Join"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Timer" type="Timer" parent="MatchFoundPanel"]
+autostart = true
