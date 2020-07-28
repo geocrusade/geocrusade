@@ -16,12 +16,13 @@ func _ready() -> void:
 	hide()
 
 	
-func _process(delta):
-	if Input.is_action_pressed("jump") and state == States.ON_GROUND:
+func _unhandled_input(event : InputEvent):
+	if event.is_action_pressed("jump") and state == States.ON_GROUND:
 		jump()
 		
-	_right_button_pressed = Input.is_mouse_button_pressed(BUTTON_RIGHT)
-	_left_button_pressed = Input.is_mouse_button_pressed(BUTTON_LEFT)
+	if event is InputEventMouseButton:
+		_right_button_pressed = event.button_index == BUTTON_RIGHT and event.pressed
+		_left_button_pressed = event.button_index == BUTTON_LEFT and event.pressed
 
 	
 func _physics_process(_delta: float) -> void:
@@ -29,8 +30,10 @@ func _physics_process(_delta: float) -> void:
 	if _right_button_pressed:
 		.turn_to(camera.get_rotation_degrees().y)
 
-func setup(username: String, position: Vector3, turn_angle: float) -> void:
+func setup(username: String, position: Vector3, turn_angle: float, health : int, power : int) -> void:
 	self.username = username
+	self.health = health
+	self.power = power
 	set_global_position(position)
 	turn_to(turn_angle)
 	spawn()
@@ -65,3 +68,10 @@ func _get_direction() -> Vector3:
 
 func _on_timer_timeout() -> void:
 	MatchController.send_transform_update(global_transform.origin, .get_turn_angle())
+
+func _set_target(value : Character) -> void:
+	if value != null:
+		value.hud.set_as_target(true)
+	if target != null and target != value:
+		target.hud.set_as_target(false)
+	._set_target(value)

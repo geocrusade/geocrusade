@@ -8,11 +8,12 @@ local TEAM1_SPAWN_POSITION = { ["x"] = 150, ["y"] = 6, ["z"] = -45 }
 local TEAM2_SPAWN_POSITION = { ["x"] = 150, ["y"] = 6, ["z"] = 45 }
 
 local OpCodes = {
-    update_transform = 1,
-    update_input = 2,
-    update_state = 3,
-    update_jump = 4,
-    initial_state = 5
+    initial_state = 1,
+    update_state = 2,
+    update_transform = 3,
+    update_input = 4,
+    update_jump = 5,
+    update_target = 6
 }
 
 local commands = {}
@@ -43,6 +44,12 @@ commands[OpCodes.update_jump] = function(data, state)
     end
 end
 
+commands[OpCodes.update_target] = function(data, state)
+    if state.users[data.id] ~= nil and state.users[data.target_id] ~= nil then
+      state.targets[data.id] = data.target_id
+    end
+end
+
 function match_handler.match_init(_, params)
     local gamestate = {
       is_arena = params.is_arena,
@@ -52,7 +59,10 @@ function match_handler.match_init(_, params)
       positions = {},
       turn_angles = {},
       jumps = {},
-      names = {}
+      names = {},
+      targets = {},
+      healths = {},
+      powers = {},
     }
     local tickrate = 20
     local label = "world"
@@ -108,6 +118,9 @@ function match_handler.match_join(_, dispatcher, _, state, joining_users)
         }
 
         state.names[user.user_id] = user.username
+
+        state.healths[user.user_id] = 100
+        state.powers[user.user_id] = 100
     end
 
 
@@ -115,7 +128,10 @@ function match_handler.match_join(_, dispatcher, _, state, joining_users)
         ["pos"] = state.positions,
         ["trn"] = state.turn_angles,
         ["inp"] = state.inputs,
-        ["nms"] = state.names
+        ["nms"] = state.names,
+        ["trg"] = state.targets,
+        ["hlt"] = state.healths,
+        ["pwr"] = state.powers
     }
     local encoded = nk.json_encode(data)
     dispatcher.broadcast_message(OpCodes.initial_state, encoded, joining_users)
@@ -132,6 +148,14 @@ function match_handler.match_leave(_, _, _, state, leaving_users)
         state.inputs[id] = nil
         state.jumps[id] = nil
         state.names[id] = nil
+        state.targets[id] = nil
+        state.healths[id] = nil
+        state.powers[id] = nil
+        for k, v in pairs(state.targets) do
+          if v == id then
+            state.targets[k] = nil
+          end
+        end
     end
     return state
 end
@@ -151,7 +175,10 @@ function match_handler.match_loop(_, dispatcher, _, state, messages)
     local data = {
         ["pos"] = state.positions,
         ["trn"] = state.turn_angles,
-        ["inp"] = state.inputs
+        ["inp"] = state.inputs,
+        ["trg"] = state.targets,
+        ["hlt"] = state.healths,
+        ["pwr"] = state.powers
     }
     local encoded = nk.json_encode(data)
 

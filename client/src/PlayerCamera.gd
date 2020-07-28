@@ -28,7 +28,7 @@ func get_rotation_degrees() -> Vector3:
 	return Vector3(_v.rotation_degrees.x, _h.rotation_degrees.y, _h.rotation_degrees.z)
 	
 
-func _input(event):
+func _unhandled_input(event):
 	if event is InputEventMouseButton and event.button_index == BUTTON_LEFT:
 		_rotation_enabled = (event as InputEventMouseButton).pressed
 	elif event is InputEventMouseMotion and _rotation_enabled:

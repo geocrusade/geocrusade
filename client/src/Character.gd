@@ -24,6 +24,10 @@ var velocity := Vector3.ZERO
 var direction := Vector3.ZERO
 var username := "" setget _set_username
 
+var health : int = 100 setget _set_health
+var power : int = 100 setget _set_power
+var target : Character = null setget _set_target
+
 var last_position := Vector3.ZERO
 var last_input := Vector3.ZERO
 var next_position := Vector3.ZERO
@@ -34,7 +38,8 @@ var next_turn_angle := 0.0
 onready var tween := $Tween
 onready var mesh := $CSGMesh
 onready var collider := $CollisionShape
-onready var username_label := $Label3D
+
+onready var hud := $HUD
 
 func _physics_process(delta: float) -> void:
 	move(delta)
@@ -52,7 +57,7 @@ func _physics_process(delta: float) -> void:
 
 func set_hidden() -> void:
 	.hide()
-	$Label3D/Label.hide()
+	hud.hide()
 
 func move(delta: float) -> void:
 	var accel = direction.normalized() * ACCELERATION * delta
@@ -125,7 +130,7 @@ func squash() -> void:
 
 func spawn() -> void:
 	.show()
-	$Label3D/Label.show()
+	hud.show()
 	tween.interpolate_property(
 		mesh, 
 		"scale", 
@@ -185,4 +190,20 @@ func move_to_position(new_position: Vector3) -> void:
 
 func _set_username(value: String) -> void:
 	username = value
-	username_label.set_text(value)
+	hud.set_username(value)
+	
+func _set_health(value : int) -> void:
+	health = value
+	hud.set_health(value)
+
+func _set_power(value : int) -> void:
+	power = value
+	hud.set_power(value)
+
+func _set_target(value : Character) -> void:
+	if target != value:
+		target = value
+		if target != null:
+			hud.set_target_username(value.username)
+		else:
+			hud.set_target_username("")

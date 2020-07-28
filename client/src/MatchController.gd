@@ -18,17 +18,18 @@ signal arena_match_join_failed
 
 
 signal users_changed
-signal state_updated(positions, turn_angles, inputs)
-signal initial_state_received(positions, turn_angles, inputs, names)
+signal state_updated(positions, turn_angles, inputs, targets, healths, powers)
+signal initial_state_received(positions, turn_angles, inputs, names, targets, healths, powers)
 signal character_spawned(id)
 
 
 enum OpCodes {
-	UPDATE_TRANSFORM = 1,
-	UPDATE_INPUT,
+	INITIAL_STATE = 1,
 	UPDATE_STATE,
+	UPDATE_TRANSFORM,
+	UPDATE_INPUT,
 	UPDATE_JUMP,
-	INITIAL_STATE
+	UPDATE_TARGET
 }
 
 var users = {}
@@ -95,19 +96,21 @@ func join_arena_match() -> void:
 		emit_signal("arena_match_join_failed")
 		print("An error occured: %s" % leave_result)
 		return
-		
-	users.clear()
-	emit_signal("users_changed")
-	
+
 	var prev_match_id = _match_id
 	_match_id = _matchmaker_matched.match_id
+
 	var joined_match : NakamaRTAPI.Match = yield(_socket.join_matched_async(_matchmaker_matched), "completed")
 	if joined_match.is_exception():
 		_match_id = prev_match_id
 		emit_signal("arena_match_join_failed")
 		print("An error occured: %s" % joined_match)
 		return
+	
+	for user in joined_match.presences:
+		users[user.user_id] = user
 		
+	emit_signal("users_changed")
 	emit_signal("arena_match_joined")
 
 func send_transform_update(position: Vector3, turn_angle: float) -> void:
@@ -121,6 +124,10 @@ func send_input_update(input: Vector3) -> void:
 func send_jump() -> void:
 	var payload := {id = ServerConnection.get_user_id() }
 	_socket.send_match_state_async(_match_id, OpCodes.UPDATE_JUMP, JSON.print(payload))
+
+func send_target(target_id: String) -> void:
+	var payload := {id = ServerConnection.get_user_id(), target_id = target_id }
+	_socket.send_match_state_async(_match_id, OpCodes.UPDATE_TARGET, JSON.print(payload))
 
 func _ready() -> void:
 	ServerConnection.connect("login_succeeded", self, "_connect_socket")
@@ -182,8 +189,11 @@ func _on_socket_received_match_state(match_state: NakamaRTAPI.MatchData) -> void
 			var positions: Dictionary = decoded.pos
 			var turn_angles: Dictionary = decoded.trn
 			var inputs: Dictionary = decoded.inp
+			var targets: Dictionary = decoded.trg
+			var healths: Dictionary = decoded.hlt
+			var powers: Dictionary = decoded.pwr
 
-			emit_signal("state_updated", positions, turn_angles, inputs)
+			emit_signal("state_updated", positions, turn_angles, inputs, targets, healths, powers)
 			
 		OpCodes.INITIAL_STATE:
 			var decoded: Dictionary = JSON.parse(raw).result
@@ -192,7 +202,11 @@ func _on_socket_received_match_state(match_state: NakamaRTAPI.MatchData) -> void
 			var turn_angles: Dictionary = decoded.trn
 			var inputs: Dictionary = decoded.inp
 			var names: Dictionary = decoded.nms
-			emit_signal("initial_state_received", positions, turn_angles, inputs, names)
+			var targets: Dictionary = decoded.trg
+			var healths: Dictionary = decoded.hlt
+			var powers: Dictionary = decoded.pwr
+			
+			emit_signal("initial_state_received", positions, turn_angles, inputs, names, targets, healths, powers)
 
 func _on_matchmaker_matched(matched : NakamaRTAPI.MatchmakerMatched):
 	_matchmaker_matched = matched
