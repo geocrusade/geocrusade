@@ -82,7 +82,7 @@ func turn_to(y_degree: float) -> void:
 	collider.rotation_degrees.y = y_degree
 
 func get_turn_angle() -> float:
-	return mesh.rotation_degrees.y
+	return fmod(mesh.rotation_degrees.y, 360.0)
 
 func stretch() -> void:
 	tween.interpolate_property(

@@ -130,7 +130,6 @@ func _on_state_updated(
 			character.next_input = Vector3(dir.x, dir.y, dir.z)
 			character.next_jump = inputs[key].jmp == 1
 		if key in targets:
-			print(targets.has(key))
 			if targets[key] in characters:
 				character.target = characters[targets[key]]
 			elif targets[key] == ServerConnection.get_user_id():

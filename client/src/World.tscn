@@ -17,6 +17,8 @@ background_mode = 1
 [node name="World" type="Spatial"]
 script = ExtResource( 2 )
 
+[node name="ArenaMatchMakerUI" parent="." instance=ExtResource( 4 )]
+
 [node name="Arena" parent="." instance=ExtResource( 6 )]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 150, 0, 0 )
 
@@ -51,5 +53,3 @@ omni_range = 64.9393
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource( 3 )
-
-[node name="ArenaMatchMakerUI" parent="." instance=ExtResource( 4 )]
