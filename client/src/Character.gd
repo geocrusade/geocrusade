@@ -38,8 +38,13 @@ var next_turn_angle := 0.0
 onready var tween := $Tween
 onready var mesh := $CSGMesh
 onready var collider := $CollisionShape
+onready var cast_timer := $CastTimer
 
 onready var hud := $HUD
+
+func _process(_delta) -> void:
+	if is_casting():
+		hud.set_cast_bar(cast_timer.wait_time - cast_timer.time_left, cast_timer.wait_time)
 
 func _physics_process(delta: float) -> void:
 	move(delta)
@@ -80,6 +85,25 @@ func jump() -> void:
 func turn_to(y_degree: float) -> void:
 	mesh.rotation_degrees.y = y_degree
 	collider.rotation_degrees.y = y_degree
+
+func start_cast(ability_codes : Array, start_time : float = 0) -> void:
+	var cast_time_seconds : float = 0
+	for i in range(ability_codes.size()):
+		var config = ServerConnection.game_config.ability_config[ability_codes[i]]
+		if i == 0:
+			cast_time_seconds += config.base.cast_duration_seconds
+			hud.set_cast_bar_label(config.name)
+		else:
+			cast_time_seconds += config.addition.get("cast_duration_seconds", 0)
+	cast_timer.start(cast_time_seconds - start_time)
+
+func cancel_cast() -> void:
+	cast_timer.stop()
+	hud.set_cast_bar(0.0, 1.0)
+	hud.set_cast_bar_label("")
+
+func is_casting() -> bool:
+	return cast_timer.time_left > 0 and not cast_timer.is_stopped()
 
 func get_turn_angle() -> float:
 	return fmod(mesh.rotation_degrees.y, 360.0)

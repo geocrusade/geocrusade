@@ -27,13 +27,15 @@ func _unhandled_input(event : InputEvent):
 	if event.is_action_pressed("ability_1"):
 		if target == null:
 			_show_alert("No target!")
+		elif not _target_in_range(ServerConnection.game_config.ability_codes.FIRE):
+			_show_alert("Target too far!")
 		elif not _is_facing_target():
 			_show_alert("Not facing target!")
 		elif not _is_target_in_line_of_sight():
 			_show_alert("Target not in line of sight!")
 		else:
-			#cast
-			pass
+			.start_cast([ ServerConnection.game_config.ability_codes.FIRE ])
+			MatchController.send_start_cast([ ServerConnection.game_config.ability_codes.FIRE ])
 	
 	if event is InputEventMouseButton:
 		if event.button_index == BUTTON_RIGHT:
@@ -44,6 +46,10 @@ func _unhandled_input(event : InputEvent):
 	
 func _physics_process(_delta: float) -> void:
 	direction = _get_direction()
+	if direction != Vector3.ZERO and .is_casting():
+		.cancel_cast()
+		MatchController.send_cancel_cast()
+		
 	if _right_button_pressed:
 		.turn_to(camera.get_rotation_degrees().y)
 
@@ -110,6 +116,9 @@ func _is_facing_target() -> bool:
 		var diff_rad = angle_2 - angle_1 - deg2rad(.get_turn_angle())
 		var diff_deg = fmod(rad2deg(diff_rad), 360.0)
 		return (diff_deg > 0 and diff_deg < 180) or (diff_deg < -180)
+
+func _target_in_range(ability_code : int) -> bool:
+	return target.global_transform.origin.distance_to(global_transform.origin) < ServerConnection.game_config.ability_config[ability_code].max_target_distance 
 
 func _show_alert(text : String) -> void:
 	alert.text = text

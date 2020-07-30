@@ -18,8 +18,8 @@ signal arena_match_join_failed
 
 
 signal users_changed
-signal state_updated(positions, turn_angles, inputs, targets, healths, powers)
-signal initial_state_received(positions, turn_angles, inputs, names, targets, healths, powers)
+signal state_updated(positions, turn_angles, inputs, targets, healths, powers, casts)
+signal initial_state_received(positions, turn_angles, inputs, names, targets, healths, powers, casts)
 signal character_spawned(id)
 
 
@@ -29,7 +29,9 @@ enum OpCodes {
 	UPDATE_TRANSFORM,
 	UPDATE_INPUT,
 	UPDATE_JUMP,
-	UPDATE_TARGET
+	UPDATE_TARGET,
+	START_CAST,
+	CANCEL_CAST
 }
 
 var users = {}
@@ -129,6 +131,14 @@ func send_target(target_id: String) -> void:
 	var payload := {id = ServerConnection.get_user_id(), target_id = target_id }
 	_socket.send_match_state_async(_match_id, OpCodes.UPDATE_TARGET, JSON.print(payload))
 
+func send_start_cast(ability_codes : Array) -> void:
+	var payload := { id = ServerConnection.get_user_id(), ability_codes = ability_codes }
+	_socket.send_match_state_async(_match_id, OpCodes.START_CAST, JSON.print(payload))
+
+func send_cancel_Cast() -> void:
+	var payload := { id = ServerConnection.get_user_id() }
+	_socket.send_match_state_async(_match_id, OpCodes.CANCEL_CAST, JSON.print(payload))
+
 func _ready() -> void:
 	ServerConnection.connect("login_succeeded", self, "_connect_socket")
 
@@ -192,8 +202,9 @@ func _on_socket_received_match_state(match_state: NakamaRTAPI.MatchData) -> void
 			var targets: Dictionary = decoded.trg
 			var healths: Dictionary = decoded.hlt
 			var powers: Dictionary = decoded.pwr
+			var casts: Dictionary = decoded.cst
 
-			emit_signal("state_updated", positions, turn_angles, inputs, targets, healths, powers)
+			emit_signal("state_updated", positions, turn_angles, inputs, targets, healths, powers, casts)
 			
 		OpCodes.INITIAL_STATE:
 			var decoded: Dictionary = JSON.parse(raw).result
@@ -205,8 +216,9 @@ func _on_socket_received_match_state(match_state: NakamaRTAPI.MatchData) -> void
 			var targets: Dictionary = decoded.trg
 			var healths: Dictionary = decoded.hlt
 			var powers: Dictionary = decoded.pwr
+			var casts: Dictionary = decoded.cst
 			
-			emit_signal("initial_state_received", positions, turn_angles, inputs, names, targets, healths, powers)
+			emit_signal("initial_state_received", positions, turn_angles, inputs, names, targets, healths, powers, casts)
 
 func _on_matchmaker_matched(matched : NakamaRTAPI.MatchmakerMatched):
 	_matchmaker_matched = matched

@@ -3,19 +3,23 @@ extends Spatial
 onready var control : Control = $Control
 onready var health_bar : ProgressBar = $Control/HealthBar
 onready var power_bar : ProgressBar = $Control/PowerBar
+onready var cast_bar : ProgressBar = $Control/CastBar
+onready var cast_bar_label : Label = $Control/CastBar/Label
 onready var username_label : Label = $Control/Username
 onready var target_label : Label = $Control/Target
 onready var targeting_highlight : ColorRect = $Control/TargetingHighlight
 onready var camera_node = get_tree().root.get_camera()
 
-const _x_offset = -75
-const _y_offset = -50
+var _x_offset = 0
+var _y_offset = 0
 
 var _enabled = true 
 
 func _ready():
 	$VisibilityNotifier.connect("camera_entered", self, "_camera_entered")
 	$VisibilityNotifier.connect("camera_exited", self, "_camera_exited")
+	_x_offset = control.rect_position.x
+	_y_offset = control.rect_position.y
 
 func _process(_delta):
 	if _enabled:
@@ -47,7 +51,13 @@ func set_health(value : int) -> void:
 	
 func set_power(value : int) -> void:
 	power_bar.value = value
-	
+
+func set_cast_bar(current_seconds : float, total_seconds : float) -> void:
+	cast_bar.value = int(current_seconds / total_seconds)
+
+func set_cast_bar_label(value : String) -> void:
+	cast_bar_label.text = value
+
 func _camera_entered(_camera) -> void:
 	_enabled = true
 	control.show()

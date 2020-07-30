@@ -11,6 +11,8 @@ const SERVER_PORT := 7350
 var _client : NakamaClient
 var _session : NakamaSession
 
+var game_config : Dictionary = {}
+
 func login(name: String) -> void:
 	var device_id = OS.get_unique_id() + name
 	emit_signal("login_started")
@@ -23,6 +25,18 @@ func login(name: String) -> void:
 
 func call_rpc_async(name : String, payload : String = "") -> NakamaAPI.ApiRpc:
 	return _client.rpc_async(_session, name, payload)
+	
+func get_game_config_async() -> Dictionary:
+	var result : NakamaAPI.ApiRpc = yield(
+		call_rpc_async("get_game_config"), "completed"
+	)
+	if not result.is_exception():
+		game_config = JSON.parse(result.payload).result
+		return game_config
+	else:
+		print("An error occured: %s" % result)
+		return null
+	
 
 func create_socket() -> NakamaSocket:
 	return Nakama.create_socket_from(_client)
