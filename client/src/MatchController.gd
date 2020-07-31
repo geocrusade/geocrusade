@@ -135,7 +135,7 @@ func send_start_cast(ability_codes : Array) -> void:
 	var payload := { id = ServerConnection.get_user_id(), ability_codes = ability_codes }
 	_socket.send_match_state_async(_match_id, OpCodes.START_CAST, JSON.print(payload))
 
-func send_cancel_Cast() -> void:
+func send_cancel_cast() -> void:
 	var payload := { id = ServerConnection.get_user_id() }
 	_socket.send_match_state_async(_match_id, OpCodes.CANCEL_CAST, JSON.print(payload))
 

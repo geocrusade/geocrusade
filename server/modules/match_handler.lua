@@ -1,5 +1,7 @@
 
 local nk = require("nakama")
+local game_config = require("game_config")
+local util = require("utility")
 
 local match_handler = {}
 
@@ -13,7 +15,9 @@ local OpCodes = {
     update_transform = 3,
     update_input = 4,
     update_jump = 5,
-    update_target = 6
+    update_target = 6,
+    start_cast = 7,
+    cancel_cast = 8
 }
 
 local commands = {}
@@ -50,6 +54,39 @@ commands[OpCodes.update_target] = function(data, state)
     end
 end
 
+commands[OpCodes.start_cast] = function(data, state)
+    if state.users[data.id] ~= nil and state.targets[data.id] ~= nil then
+      local power = 0
+      local cast_duration_seconds = 0
+      local max_target_distance = 0
+      for i, code in ipairs(data.ability_codes) do
+        local ability = game_config.ability_config[code]
+        if i == 0 then
+          power += ability.primary.power
+          cast_duration_seconds += ability.primary.cast_duration_seconds
+          max_target_distance = ability.primary.max_target_distance
+        else
+          power += ability.secondary.power
+          cast_duration_seconds += ability.secondary.cast_duration_seconds
+        end
+      end
+      if state.powers[data.id] >= power then
+        local target = state.targets[data.id]
+        local distance_to_target = util.get_vector_distance(state.positions[data.id], state.positions[target])
+        if distance_to_target <= max_target_distance then
+          state.casts[data.id] = {
+            ability_codes = ability_codes,
+            target: target_id,
+            elapsed_time_seconds = 0,
+            power = power,
+            cast_duration_seconds = cast_duration_seconds,
+            max_target_distance = max_target_distance
+          }
+        end
+      end
+    end
+end
+
 function match_handler.match_init(_, params)
     local gamestate = {
       is_arena = params.is_arena,
@@ -63,6 +100,7 @@ function match_handler.match_init(_, params)
       targets = {},
       healths = {},
       powers = {},
+      casts = {}
     }
     local tickrate = 20
     local label = "world"
@@ -121,6 +159,8 @@ function match_handler.match_join(_, dispatcher, _, state, joining_users)
 
         state.healths[user.user_id] = 100
         state.powers[user.user_id] = 100
+
+        state.casts[user.user_id] = nil
     end
 
 

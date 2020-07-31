@@ -91,10 +91,10 @@ func start_cast(ability_codes : Array, start_time : float = 0) -> void:
 	for i in range(ability_codes.size()):
 		var config = ServerConnection.game_config.ability_config[ability_codes[i]]
 		if i == 0:
-			cast_time_seconds += config.base.cast_duration_seconds
+			cast_time_seconds += config.primary.cast_duration_seconds
 			hud.set_cast_bar_label(config.name)
 		else:
-			cast_time_seconds += config.addition.get("cast_duration_seconds", 0)
+			cast_time_seconds += config.secondary.cast_duration_seconds
 	cast_timer.start(cast_time_seconds - start_time)
 
 func cancel_cast() -> void:
