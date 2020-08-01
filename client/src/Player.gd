@@ -27,6 +27,8 @@ func _unhandled_input(event : InputEvent):
 	if event.is_action_pressed("ability_1"):
 		if target == null:
 			_show_alert("No target!")
+		elif power < ServerConnection.get_ability(ServerConnection.game_config.ability_codes.FIRE).primary.power_cost:
+			_show_alert("Not enough power!")
 		elif not _target_in_range(ServerConnection.game_config.ability_codes.FIRE):
 			_show_alert("Target too far!")
 		elif not _is_facing_target():
@@ -34,7 +36,6 @@ func _unhandled_input(event : InputEvent):
 		elif not _is_target_in_line_of_sight():
 			_show_alert("Target not in line of sight!")
 		else:
-			.start_cast([ ServerConnection.game_config.ability_codes.FIRE ])
 			MatchController.send_start_cast([ ServerConnection.game_config.ability_codes.FIRE ])
 	
 	if event is InputEventMouseButton:
@@ -54,6 +55,7 @@ func _physics_process(_delta: float) -> void:
 		.turn_to(camera.get_rotation_degrees().y)
 
 func setup(username: String, position: Vector3, turn_angle: float, health : int, power : int) -> void:
+	print("SETUP PLAYER")
 	self.username = username
 	self.health = health
 	self.power = power
@@ -102,6 +104,8 @@ func _set_target(value : Character) -> void:
 func _is_target_in_line_of_sight() -> bool:
 	if target == null:
 		return false
+	elif target == self:
+		return true
 	var from : Vector3 = get_node("LineOfSitePoint").global_transform.origin
 	var to : Vector3 = target.get_node("LineOfSitePoint").global_transform.origin
 	var hit = get_world().direct_space_state.intersect_ray(from, to)
@@ -110,6 +114,8 @@ func _is_target_in_line_of_sight() -> bool:
 func _is_facing_target() -> bool:
 	if target == null:
 		return false
+	elif target == self:
+		return true
 	else:	
 		var angle_1 = atan2(global_transform.origin.z, global_transform.origin.x)
 		var angle_2 = atan2(target.global_transform.origin.z, target.global_transform.origin.x)
@@ -118,7 +124,7 @@ func _is_facing_target() -> bool:
 		return (diff_deg > 0 and diff_deg < 180) or (diff_deg < -180)
 
 func _target_in_range(ability_code : int) -> bool:
-	return target.global_transform.origin.distance_to(global_transform.origin) < ServerConnection.game_config.ability_config[ability_code].max_target_distance 
+	return target.global_transform.origin.distance_to(global_transform.origin) < ServerConnection.get_ability(ability_code).primary.max_target_distance 
 
 func _show_alert(text : String) -> void:
 	alert.text = text

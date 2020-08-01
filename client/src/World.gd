@@ -4,7 +4,7 @@ export var CharacterScene: PackedScene
 
 var characters := {}
 
-onready var player : Player = get_parent().get_node("Player")
+onready var player : Player = $Player
 
 func _ready() -> void:
 	#warning-ignore: return_value_discarded
@@ -63,8 +63,7 @@ func _on_initial_state_received(
 				character.update_state()
 				character.spawn()
 				if id in casts:
-					var cast = casts[id]
-					character.start_cast(cast.ability_codes, cast.current_time_seconds)
+					character.set_cast(casts[id])
 
 func create_character(
 	id: String,
@@ -84,8 +83,7 @@ func create_character(
 	character.health = health
 	character.power = power
 	if id in casts:
-		var cast = casts[id]
-		character.start_cast(cast.ability_codes, cast.current_time_seconds)
+		character.set_cast(casts[id])
 	character.set_global_position(position)
 	character.turn_to(turn_angle)
 	character.spawn()
@@ -127,6 +125,11 @@ func _on_state_updated(
 	player.health = healths[player_id]
 	player.power = powers[player_id]
 	
+	if player_id in casts:
+		player.set_cast(casts[player_id])
+	else:
+		player.cancel_cast()
+	
 	for key in characters:
 		var character = characters[key]
 		if key in positions:
@@ -151,11 +154,9 @@ func _on_state_updated(
 		if key in powers:
 			character.power = powers[key]
 		if key in casts:
-			var cast = casts[key]
-			if cast.start:
-				character.start_cast(cast.ability_codes)
-			else:
-				character.cancel_cast()
+			character.set_cast(casts[key])
+		else:
+			character.cancel_cast()
 				
 		character.update_state()
 			

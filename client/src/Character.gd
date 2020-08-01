@@ -88,17 +88,30 @@ func turn_to(y_degree: float) -> void:
 
 func start_cast(ability_codes : Array, start_time : float = 0) -> void:
 	var cast_time_seconds : float = 0
+	var cast_bar_label = ""
 	for i in range(ability_codes.size()):
-		var config = ServerConnection.game_config.ability_config[ability_codes[i]]
+		var config = ServerConnection.get_ability(ability_codes[i])
 		if i == 0:
 			cast_time_seconds += config.primary.cast_duration_seconds
-			hud.set_cast_bar_label(config.name)
+			cast_bar_label += config.name
 		else:
+			cast_bar_label += "," + config.name
 			cast_time_seconds += config.secondary.cast_duration_seconds
+	hud.set_cast_bar_label(cast_bar_label)
 	cast_timer.start(cast_time_seconds - start_time)
 
+func set_cast(cast : Dictionary) -> void:
+	var cast_bar_label = ""
+	for i in range(cast.ability_codes.size()):
+		var config = ServerConnection.get_ability(cast.ability_codes[i])
+		if i == 0:
+			cast_bar_label += config.name
+		else:
+			cast_bar_label += "," + config.name
+	hud.set_cast_bar(cast.elapsed_time_seconds, cast.duration_seconds)
+	hud.set_cast_bar_label(cast_bar_label)
+
 func cancel_cast() -> void:
-	cast_timer.stop()
 	hud.set_cast_bar(0.0, 1.0)
 	hud.set_cast_bar_label("")
 

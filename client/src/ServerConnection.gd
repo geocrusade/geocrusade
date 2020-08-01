@@ -26,18 +26,24 @@ func login(name: String) -> void:
 func call_rpc_async(name : String, payload : String = "") -> NakamaAPI.ApiRpc:
 	return _client.rpc_async(_session, name, payload)
 	
-func get_game_config_async() -> Dictionary:
+func get_game_config_async() -> NakamaAPI.ApiRpc:
 	var result : NakamaAPI.ApiRpc = yield(
 		call_rpc_async("get_game_config"), "completed"
 	)
 	if not result.is_exception():
 		game_config = JSON.parse(result.payload).result
-		return game_config
-	else:
-		print("An error occured: %s" % result)
-		return null
-	
+		print(game_config.ability_config[0])
+		
+	return result
 
+func get_ability(code : int) -> Dictionary:
+	# server uses lua runtime where indices start at 1
+	return game_config.ability_config[code - 1]
+
+func get_effect(code : int) -> Dictionary:
+	# server uses lua runtime where indices start at 1
+	return game_config.effect_config[code - 1]
+	
 func create_socket() -> NakamaSocket:
 	return Nakama.create_socket_from(_client)
 

@@ -1,36 +1,36 @@
 local util = require("utility")
 
 local ability_codes = {
-  ["FIRE"] = 0
+  ["FIRE"] = 1
 }
 
 local effect_codes = {
-  ["BURN"] = 0
+  ["BURN"] = 1
 }
 
 local ability_defaults = {
-  cast_duration_seconds: 0.0,
-  max_target_distance: 0,
-  power_cost: 0,
-  is_projectile: false,
-  meters_per_second: 3.0,
-  on_hit: {
-    effects: []
+  cast_duration_seconds = 0.0,
+  max_target_distance = 0,
+  power_cost = 0,
+  is_projectile = false,
+  meters_per_second = 3.0,
+  on_hit = {
+    effects = {}
   },
-  on_hit_enemy: {
-    effects: [],
-    health_delta: 0
-  }
-  on_hit_friendly: {
-    effects: [],
-    health_delta: 0
+  on_hit_enemy = {
+    effects = {},
+    health_delta = 0
+  },
+  on_hit_friendly = {
+    effects = {},
+    health_delta = 0
   }
 }
 
 local effect_defaults = {
-  duration_seconds: 0,
-  health_per_second: 0,
-  max_stacks: 1
+  duration_seconds = 0,
+  health_per_second = 0,
+  max_stacks = 1
 }
 
 local game_config = {
@@ -39,23 +39,24 @@ local game_config = {
     ability_config = {
 
       [ability_codes.FIRE] = {
-        primary : {
-          cast_duration_seconds: 1.0,
-          max_target_distance: 30,
-          power_cost: 10,
-          is_projectile: true,
-          on_hit: {
-            effects: [ effect_codes.BURN ]
+        name = "Fire",
+        primary = {
+          cast_duration_seconds = 1.0,
+          max_target_distance = 30,
+          power_cost = 10,
+          is_projectile = true,
+          on_hit = {
+            effects = { effect_codes.BURN }
           },
-          on_hit_enemy: {
-            health_delta: -10
-          },
+          on_hit_enemy = {
+            health_delta = -10
+          }
         },
-        secondary : {
-          cast_duration_seconds: 0.5,
-          power_cost: 5,
-          on_hit_enemy: {
-            health_delta: -5
+        secondary = {
+          cast_duration_seconds = 0.5,
+          power_cost = 5,
+          on_hit_enemy = {
+            health_delta = -5
           }
         }
       }
@@ -65,9 +66,10 @@ local game_config = {
     effect_codes = effect_codes,
     effect_config = {
       [effect_codes.BURN] = {
-        duration_seconds: 3,
-        health_per_second: -1,
-        max_stacks: 4
+        name = "Burn",
+        duration_seconds = 3,
+        health_per_second = -1,
+        max_stacks = 4
       }
     }
 }
@@ -87,6 +89,20 @@ local function process_config()
     -- fill in defaults where properties are not defined
     game_config.effect_config[effect_code] = util.merge_table_into(effect_defaults, effect)
   end
+
+  -- to support json encoding convert ability & effect configs to use array indexing instead of integer keys
+  local ability_config_array = {}
+  for _, code in pairs(ability_codes) do
+    ability_config_array[code] = game_config.ability_config[code]
+  end
+  game_config.ability_config = ability_config_array
+
+  local effect_config_array = {}
+  for _, code in pairs(effect_codes) do
+    effect_config_array[code] = game_config.effect_config[code]
+  end
+  game_config.effect_config = effect_config_array
+
 end
 
 process_config()

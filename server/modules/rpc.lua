@@ -18,3 +18,4 @@ local function get_game_config(_, _)
 end
 
 nk.register_rpc(get_world_id, "get_world_id")
+nk.register_rpc(get_game_config, "get_game_config")

@@ -217,7 +217,6 @@ func _on_socket_received_match_state(match_state: NakamaRTAPI.MatchData) -> void
 			var healths: Dictionary = decoded.hlt
 			var powers: Dictionary = decoded.pwr
 			var casts: Dictionary = decoded.cst
-			
 			emit_signal("initial_state_received", positions, turn_angles, inputs, names, targets, healths, powers, casts)
 
 func _on_matchmaker_matched(matched : NakamaRTAPI.MatchmakerMatched):

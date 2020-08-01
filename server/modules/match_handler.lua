@@ -5,9 +5,12 @@ local util = require("utility")
 
 local match_handler = {}
 
-local WORLD_SPAWN_POSITION = { ["x"] = 0, ["y"] = 0, ["z"] = 0 }
-local TEAM1_SPAWN_POSITION = { ["x"] = 150, ["y"] = 6, ["z"] = -45 }
-local TEAM2_SPAWN_POSITION = { ["x"] = 150, ["y"] = 6, ["z"] = 45 }
+local WORLD_SPAWN_POSITION = { x = 0, y = 0, z = 0 }
+local TEAM1_SPAWN_POSITION = { x = 150, y = 6, z = -45 }
+local TEAM2_SPAWN_POSITION = { x = 150, y = 6, z = 45 }
+
+local TICK_RATE = 20
+
 
 local OpCodes = {
     initial_state = 1,
@@ -17,7 +20,7 @@ local OpCodes = {
     update_jump = 5,
     update_target = 6,
     start_cast = 7,
-    cancel_cast = 8
+    cancel_cast = 8,
 }
 
 local commands = {}
@@ -56,35 +59,41 @@ end
 
 commands[OpCodes.start_cast] = function(data, state)
     if state.users[data.id] ~= nil and state.targets[data.id] ~= nil then
-      local power = 0
-      local cast_duration_seconds = 0
+      local power_cost = 0
+      local duration_seconds = 0
       local max_target_distance = 0
       for i, code in ipairs(data.ability_codes) do
         local ability = game_config.ability_config[code]
-        if i == 0 then
-          power += ability.primary.power
-          cast_duration_seconds += ability.primary.cast_duration_seconds
+        if i == 1 then
+          power_cost = power_cost + ability.primary.power_cost
+          duration_seconds = duration_seconds + ability.primary.cast_duration_seconds
           max_target_distance = ability.primary.max_target_distance
         else
-          power += ability.secondary.power
-          cast_duration_seconds += ability.secondary.cast_duration_seconds
+          power_cost = power_cost + ability.secondary.power_cost
+          duration_seconds = duration_seconds + ability.secondary.cast_duration_seconds
         end
       end
-      if state.powers[data.id] >= power then
-        local target = state.targets[data.id]
-        local distance_to_target = util.get_vector_distance(state.positions[data.id], state.positions[target])
+      if state.powers[data.id] >= power_cost then
+        local target_id = state.targets[data.id]
+        local distance_to_target = util.get_vector_distance(state.positions[data.id], state.positions[target_id])
         if distance_to_target <= max_target_distance then
           state.casts[data.id] = {
-            ability_codes = ability_codes,
-            target: target_id,
-            elapsed_time_seconds = 0,
-            power = power,
-            cast_duration_seconds = cast_duration_seconds,
+            ability_codes = data.ability_codes,
+            target_id = target_id,
+            elapsed_time_seconds = 0.0,
+            power_cost = power_cost,
+            duration_seconds = duration_seconds,
             max_target_distance = max_target_distance
           }
         end
       end
     end
+end
+
+commands[OpCodes.cancel_cast] = function(data, state)
+  if state.users[data.id] ~= nil and state.casts[data.id] ~= nil then
+    state.casts[data.id] = nil
+  end
 end
 
 function match_handler.match_init(_, params)
@@ -102,7 +111,6 @@ function match_handler.match_init(_, params)
       powers = {},
       casts = {}
     }
-    local tickrate = 20
     local label = "world"
     if params.is_arena then
       label = "arena"
@@ -110,7 +118,7 @@ function match_handler.match_init(_, params)
       gamestate.joined_count_team2 = 0
       gamestate.team_size = #params.matched_users / 2
     end
-    return gamestate, tickrate, label
+    return gamestate, TICK_RATE, label
 end
 
 function match_handler.match_join_attempt(_, _, _, state, user, _)
@@ -147,12 +155,12 @@ function match_handler.match_join(_, dispatcher, _, state, joining_users)
         end
 
         state.inputs[user.user_id] = {
-            ["dir"] = {
-              ["x"] = 0,
-              ["y"] = 0,
-              ["z"] = 0
+            dir= {
+              x = 0,
+              y = 0,
+              z = 0
             },
-            ["jmp"] = 0
+            jmp = 0
         }
 
         state.names[user.user_id] = user.username
@@ -165,13 +173,14 @@ function match_handler.match_join(_, dispatcher, _, state, joining_users)
 
 
     local data = {
-        ["pos"] = state.positions,
-        ["trn"] = state.turn_angles,
-        ["inp"] = state.inputs,
-        ["nms"] = state.names,
-        ["trg"] = state.targets,
-        ["hlt"] = state.healths,
-        ["pwr"] = state.powers
+        pos = state.positions,
+        trn = state.turn_angles,
+        inp = state.inputs,
+        nms = state.names,
+        trg = state.targets,
+        hlt = state.healths,
+        pwr = state.powers,
+        cst = state.casts
     }
     local encoded = nk.json_encode(data)
     dispatcher.broadcast_message(OpCodes.initial_state, encoded, joining_users)
@@ -191,6 +200,9 @@ function match_handler.match_leave(_, _, _, state, leaving_users)
         state.targets[id] = nil
         state.healths[id] = nil
         state.powers[id] = nil
+        state.casts[id] = nil
+
+        -- remove this user as a target of others
         for k, v in pairs(state.targets) do
           if v == id then
             state.targets[k] = nil
@@ -212,17 +224,35 @@ function match_handler.match_loop(_, dispatcher, _, state, messages)
         end
     end
 
-    local data = {
-        ["pos"] = state.positions,
-        ["trn"] = state.turn_angles,
-        ["inp"] = state.inputs,
-        ["trg"] = state.targets,
-        ["hlt"] = state.healths,
-        ["pwr"] = state.powers
+    local update = {
+        pos = state.positions,
+        trn = state.turn_angles,
+        inp = state.inputs,
+        trg = state.targets,
+        hlt = state.healths,
+        pwr = state.powers,
+        cst = state.casts
     }
-    local encoded = nk.json_encode(data)
 
-    dispatcher.broadcast_message(OpCodes.update_state, encoded)
+    local encoded_update = nk.json_encode(update)
+
+    dispatcher.broadcast_message(OpCodes.update_state, encoded_update)
+
+
+    local delta_seconds = 1.0 / TICK_RATE
+    for id, cast in pairs(state.casts) do
+      local input = state.inputs[id]
+      if input ~= nil and (input.jmp == 1 or not util.is_zero_vector(input.dir)) then
+        state.casts[id] = nil
+      elseif cast.elapsed_time_seconds >= cast.duration_seconds then
+        state.casts[id] = nil
+        state.powers[id] = state.powers[id] - cast.power_cost
+      else
+        cast.elapsed_time_seconds = cast.elapsed_time_seconds + delta_seconds
+        state.casts[id] = cast
+      end
+    end
+
 
     for _, input in pairs(state.inputs) do
         input.jmp = 0
