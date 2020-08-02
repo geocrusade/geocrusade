@@ -25,11 +25,11 @@ utility["is_zero_vector"] = function(v)
   return v.x == 0 and v.y == 0 and v.z == 0
 end
 
-utility["vector_cross_product"] = function(a, b)
+utility["vector_dot_product"] = function(a, b)
   return a.x*b.x + a.y*b.y + a.z*b.z
 end
 
-utility["vector_dot_product"] = function(a, b)
+utility["vector_cross_product"] = function(a, b)
   return {
     x = a.y * b.z - a.z * b.y,
     y = a.z * b.x - a.x * b.z,
