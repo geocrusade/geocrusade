@@ -55,6 +55,9 @@ func set_power(value : int) -> void:
 func set_cast_bar(current_seconds : float, total_seconds : float) -> void:
 	cast_bar.ratio = current_seconds / total_seconds
 
+func get_cast_bar_value() -> float:
+	return cast_bar.ratio
+
 func set_cast_bar_label(value : String) -> void:
 	cast_bar_label.text = value
 

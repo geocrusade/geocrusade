@@ -1,6 +1,5 @@
 local utility = {}
 
-
 utility["merge_table_into"] = function(a, b)
   for key, a_val in pairs(a) do
     local b_val = b[key]
@@ -24,6 +23,74 @@ end
 
 utility["is_zero_vector"] = function(v)
   return v.x == 0 and v.y == 0 and v.z == 0
+end
+
+utility["vector_cross_product"] = function(a, b)
+  return a.x*b.x + a.y*b.y + a.z*b.z
+end
+
+utility["vector_dot_product"] = function(a, b)
+  return {
+    x = a.y * b.z - a.z * b.y,
+    y = a.z * b.x - a.x * b.z,
+    z = a.x * b.y - a.y * b.x
+  }
+end
+
+utility["vector_subtract"] = function(a, b)
+  return {
+    x = a.x - b.x,
+    y = a.y - b.y,
+    z = a.z - b.z
+  }
+end
+
+local num_have_same_sign = function(a, b)
+  return a*b >= 0
+end
+
+local get_tetra_volume = function(a, b, c, d)
+  local ba = utility.vector_subtract(b, a)
+	local ca = utility.vector_subtract(c, a)
+	local da = utility.vector_subtract(d, a)
+	return (1.0 / 6.0) * utility.vector_dot_product(utility.vector_cross_product(ba, ca), da)
+end
+
+local line_intersects_triangle = function(p1, p2, v1, v2, v3)
+  local s1 = get_tetra_volume(p1, v1, v2, v3)
+  local s2 = get_tetra_volume(p2, v1, v2, v3)
+
+  if num_have_same_sign(s1, s2) then
+    return false
+  end
+
+  local s3 = get_tetra_volume(p1, p2, v1, v2)
+  local s4 = get_tetra_volume(p1, p2, v2, v3)
+
+  if not num_have_same_sign(s3, s4) then
+    return false
+  end
+
+  local s5 = get_tetra_volume(p1, p2, v3, v1)
+
+  if not num_have_same_sign(s4, s5) then
+    return false
+  end
+
+  return true
+end
+
+utility["line_intersects_faces"] = function(p1, p2, face_vertices)
+  for i = 1, table.getn(face_vertices)-3, 3 do
+    local v1 = face_vertices[i]
+    local v2 = face_vertices[i+1]
+    local v3 = face_vertices[i+2]
+    if line_intersects_triangle(p1, p2, v1, v2, v3) then
+      return true
+    end
+  end
+
+  return false
 end
 
 return utility

@@ -30,11 +30,11 @@ func _unhandled_input(event : InputEvent):
 		elif power < ServerConnection.get_ability(ServerConnection.game_config.ability_codes.FIRE).primary.power_cost:
 			_show_alert("Not enough power!")
 		elif not _target_in_range(ServerConnection.game_config.ability_codes.FIRE):
-			_show_alert("Target too far!")
+			_show_alert("Targe t too far!")
 		elif not _is_facing_target():
 			_show_alert("Not facing target!")
-		elif not _is_target_in_line_of_sight():
-			_show_alert("Target not in line of sight!")
+#		elif not _is_target_in_line_of_sight():
+#			_show_alert("Target not in line of sight!")
 		else:
 			MatchController.send_start_cast([ ServerConnection.game_config.ability_codes.FIRE ])
 	
@@ -47,12 +47,12 @@ func _unhandled_input(event : InputEvent):
 	
 func _physics_process(_delta: float) -> void:
 	direction = _get_direction()
-	if direction != Vector3.ZERO and .is_casting():
+	if direction != Vector3.ZERO and hud.get_cast_bar_value() > 0:
 		.cancel_cast()
 		MatchController.send_cancel_cast()
 		
 	if _right_button_pressed:
-		.turn_to(camera.get_rotation_degrees().y)
+		global_transform.basis = camera.get_horizontal_basis()
 
 func setup(username: String, position: Vector3, turn_angle: float, health : int, power : int) -> void:
 	print("SETUP PLAYER")
@@ -112,16 +112,8 @@ func _is_target_in_line_of_sight() -> bool:
 	return hit and hit.collider == target
 
 func _is_facing_target() -> bool:
-	if target == null:
-		return false
-	elif target == self:
-		return true
-	else:	
-		var angle_1 = atan2(global_transform.origin.z, global_transform.origin.x)
-		var angle_2 = atan2(target.global_transform.origin.z, target.global_transform.origin.x)
-		var diff_rad = angle_2 - angle_1 - deg2rad(.get_turn_angle())
-		var diff_deg = fmod(rad2deg(diff_rad), 360.0)
-		return (diff_deg > 0 and diff_deg < 180) or (diff_deg < -180)
+	var direction = global_transform.origin - target.global_transform.origin 
+	return direction.dot(global_transform.basis.z) > 0
 
 func _target_in_range(ability_code : int) -> bool:
 	return target.global_transform.origin.distance_to(global_transform.origin) < ServerConnection.get_ability(ability_code).primary.max_target_distance 

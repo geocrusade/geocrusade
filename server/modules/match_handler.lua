@@ -2,6 +2,7 @@
 local nk = require("nakama")
 local game_config = require("game_config")
 local util = require("utility")
+local arena_vertices = require("arena_vertices")
 
 local match_handler = {}
 
@@ -10,7 +11,6 @@ local TEAM1_SPAWN_POSITION = { x = 150, y = 6, z = -45 }
 local TEAM2_SPAWN_POSITION = { x = 150, y = 6, z = 45 }
 
 local TICK_RATE = 20
-
 
 local OpCodes = {
     initial_state = 1,
@@ -75,8 +75,10 @@ commands[OpCodes.start_cast] = function(data, state)
       end
       if state.powers[data.id] >= power_cost then
         local target_id = state.targets[data.id]
-        local distance_to_target = util.get_vector_distance(state.positions[data.id], state.positions[target_id])
-        if distance_to_target <= max_target_distance then
+        local pos = state.positions[data.id]
+        local target_pos = state.positions[target_id]
+        local distance_to_target = util.get_vector_distance(pos, target_pos)
+        if distance_to_target <= max_target_distance and not util.line_intersects_faces(pos, target_pos, arena_vertices) then
           state.casts[data.id] = {
             ability_codes = data.ability_codes,
             target_id = target_id,

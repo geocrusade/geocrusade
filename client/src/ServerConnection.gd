@@ -32,7 +32,6 @@ func get_game_config_async() -> NakamaAPI.ApiRpc:
 	)
 	if not result.is_exception():
 		game_config = JSON.parse(result.payload).result
-		print(game_config.ability_config[0])
 		
 	return result
 

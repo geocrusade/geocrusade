@@ -26,12 +26,16 @@ func get_direction() -> Vector3:
 
 func get_rotation_degrees() -> Vector3:
 	return Vector3(_v.rotation_degrees.x, _h.rotation_degrees.y, _h.rotation_degrees.z)
-	
+
+func get_horizontal_basis() -> Basis:
+	return _h.transform.basis	
 
 func _unhandled_input(event):
 	if event is InputEventMouseButton and event.button_index == BUTTON_LEFT:
 		_rotation_enabled = (event as InputEventMouseButton).pressed
 	elif event is InputEventMouseMotion and _rotation_enabled:
+		if event is InputEventMouseButton and event.button_index == BUTTON_RIGHT:
+			h_rot = 0
 		h_rot -= event.relative.x * h_sens
 		v_rot -= event.relative.y * v_sens
 
