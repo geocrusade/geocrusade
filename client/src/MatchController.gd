@@ -31,7 +31,8 @@ enum OpCodes {
 	UPDATE_JUMP,
 	UPDATE_TARGET,
 	START_CAST,
-	CANCEL_CAST
+	CANCEL_CAST,
+	UPDATE_CAST
 }
 
 var users = {}
@@ -139,6 +140,10 @@ func send_cancel_cast() -> void:
 	var payload := { id = ServerConnection.get_user_id() }
 	_socket.send_match_state_async(_match_id, OpCodes.CANCEL_CAST, JSON.print(payload))
 
+func send_cast_update(ability_codes : Array) -> void:
+	var payload = { id = ServerConnection.get_user_id(), ability_codes = ability_codes }
+	_socket.send_match_state_async(_match_id, OpCodes.UPDATE_CAST, JSON.print(payload))
+	
 func _ready() -> void:
 	ServerConnection.connect("login_succeeded", self, "_connect_socket")
 
@@ -166,7 +171,6 @@ func _connect_socket() -> void:
 	_socket.connect("received_match_state", self, "_on_socket_received_match_state")
 	#warning-ignore: return_value_discarded
 	_socket.connect("received_matchmaker_matched", self, "_on_matchmaker_matched")
-
 
 func _on_socket_closed() -> void:
 	_socket = null

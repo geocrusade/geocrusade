@@ -20,6 +20,7 @@ local OpCodes = {
     update_target = 6,
     start_cast = 7,
     cancel_cast = 8,
+    update_cast = 9
 }
 
 local in_line_of_sight = function(pos_a, pos_b)
@@ -62,49 +63,82 @@ commands[OpCodes.update_target] = function(data, state)
     end
 end
 
+local get_composite_ability = function(ability_codes)
+  local ability_config = game_config.ability_config[ability_codes[1]]
+  local primary_ability = ability_config.primary
+  local composite_ability = util.table_copy(primary_ability)
+  composite_ability.name = ability_config.name
+  for i=2, table.getn(ability_codes) do
+    ability_config = game_config.ability_config[ability_codes[i]]
+    local secondary_ability = ability_config.secondary
+    composite_ability.name = string.format("%s,%s", composite_ability.name, ability_config.name)
+    composite_ability.cast_duration_seconds = composite_ability.cast_duration_seconds + secondary_ability.cast_duration_seconds
+    composite_ability.max_target_distance = composite_ability.max_target_distance + secondary_ability.max_target_distance
+    composite_ability.power_cost = composite_ability.power_cost + secondary_ability.power_cost
+    composite_ability.meters_per_second = composite_ability.meters_per_second + secondary_ability.meters_per_second
+
+    composite_ability.on_hit.health_delta = composite_ability.on_hit.health_delta + secondary_ability.on_hit.health_delta
+    composite_ability.on_hit_enemy.health_delta = composite_ability.on_hit_enemy.health_delta + secondary_ability.on_hit_enemy.health_delta
+    composite_ability.on_hit_friendly.health_delta = composite_ability.on_hit_friendly.health_delta + secondary_ability.on_hit_friendly.health_delta
+
+    util.table_insert_all(composite_ability.on_hit.effects, secondary_ability.on_hit.effects)
+    util.table_insert_all(composite_ability.on_hit_enemy.effects, secondary_ability.on_hit_enemy.effects)
+    util.table_insert_all(composite_ability.on_hit_friendly.effects, secondary_ability.on_hit_friendly.effects)
+  end
+
+  return composite_ability
+end
+
+local can_cast = function(composite_ability, user_id, target_id, state)
+  if state.users[user_id] == nil or state.targets[user_id] == nil then
+    return false
+  end
+
+  if state.powers[user_id] < composite_ability.power_cost then
+    return false
+  end
+
+  local pos = state.positions[user_id]
+  local target_pos = state.positions[target_id]
+  local distance_to_target = util.get_vector_distance(pos, target_pos)
+  return distance_to_target <= composite_ability.max_target_distance and in_line_of_sight(pos, target_pos)
+end
+
 commands[OpCodes.start_cast] = function(data, state)
-    if state.users[data.id] ~= nil and state.targets[data.id] ~= nil then
-      local ability_config = game_config.ability_config[data.ability_codes[1]]
-      local primary_ability = ability_config.primary
-      local composite_ability = util.table_copy(primary_ability)
-      composite_ability.name = ability_config.name
-      for i=2, table.getn(data.ability_codes) do
-        ability_config = game_config.ability_config[data.ability_codes[i]]
-        local secondary_ability = ability_config.secondary
-        composite_ability.name = string.format("%s,%s", composite_ability.name, ability_config.name)
-        composite_ability.cast_duration_seconds = composite_ability.cast_duration_seconds + secondary_ability.cast_duration_seconds
-        composite_ability.max_target_distance = composite_ability.max_target_distance + secondary_ability.max_target_distance
-        composite_ability.power_cost = composite_ability.power_cost + secondary_ability.power_cost
-        composite_ability.meters_per_second = composite_ability.power_cost + secondary_ability.meters_per_second
-
-        composite_ability.on_hit.health_delta = composite_ability.on_hit.health_delta + secondary_ability.on_hit.health_delta
-        composite_ability.on_hit_enemy.health_delta = composite_ability.on_hit_enemy.health_delta + secondary_ability.on_hit_enemy.health_delta
-        composite_ability.on_hit_friendly.health_delta = composite_ability.on_hit_friendly.health_delta + secondary_ability.on_hit_friendly.health_delta
-
-        util.table_insert_all(composite_ability.on_hit.effects, secondary_ability.on_hit.effects)
-        util.table_insert_all(composite_ability.on_hit_enemy.effects, secondary_ability.on_hit_enemy.effects)
-        util.table_insert_all(composite_ability.on_hit_friendly.effects, secondary_ability.on_hit_friendly.effects)
-
-      end
-      if state.powers[data.id] >= composite_ability.power_cost then
-        local target_id = state.targets[data.id]
-        local pos = state.positions[data.id]
-        local target_pos = state.positions[target_id]
-        local distance_to_target = util.get_vector_distance(pos, target_pos)
-        if distance_to_target <= composite_ability.max_target_distance and in_line_of_sight(pos, target_pos) then
-          state.casts[data.id] = {
-            composite_ability = composite_ability,
-            target_id = target_id,
-            elapsed_time_seconds = 0.0,
-          }
-        end
-      end
+  if #data.ability_codes <= game_config.max_composite_ability_size then
+    local composite_ability = get_composite_ability(data.ability_codes)
+    local target_id = state.targets[data.id]
+    if can_cast(composite_ability, data.id, target_id, state) then
+      state.casts[data.id] = {
+        ability_codes = data.ability_codes,
+        composite_ability = composite_ability,
+        target_id = target_id,
+        elapsed_time_seconds = 0.0,
+      }
     end
+  end
 end
 
 commands[OpCodes.cancel_cast] = function(data, state)
   if state.users[data.id] ~= nil and state.casts[data.id] ~= nil then
     state.casts[data.id] = nil
+  end
+end
+
+commands[OpCodes.update_cast] = function(data, state)
+  if state.casts[data.id] ~= nil then
+    local current_ability_codes = state.casts[data.id].ability_codes
+    if #data.ability_codes + #current_ability_codes  <= game_config.max_composite_ability_size then
+      local ability_codes = util.table_copy(current_ability_codes)
+      util.table_insert_all(ability_codes, data.ability_codes)
+      local current_cast = state.casts[data.id]
+      current_cast.composite_ability = get_composite_ability(ability_codes)
+      current_cast.ability_codes = ability_codes
+      local target_id = state.targets[data.id]
+      if can_cast(current_cast.composite_ability, data.id, target_id, state) then
+        state.casts[data.id] = current_cast
+      end
+    end
   end
 end
 

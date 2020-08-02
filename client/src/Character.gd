@@ -35,6 +35,8 @@ var next_input := Vector3.ZERO
 var next_jump := false
 var next_turn_angle := 0.0
 
+var cast_ability_codes : Array = []
+
 onready var tween := $Tween
 onready var mesh := $CSGMesh
 onready var collider := $CollisionShape
@@ -102,10 +104,14 @@ func set_cast(cast : Dictionary) -> void:
 	var cast_bar_label = ""
 	hud.set_cast_bar(cast.elapsed_time_seconds, cast.composite_ability.cast_duration_seconds)
 	hud.set_cast_bar_label(cast.composite_ability.name)
-
+	
 func cancel_cast() -> void:
 	hud.set_cast_bar(0.0, 1.0)
 	hud.set_cast_bar_label("")
+	cast_ability_codes.clear()
+	
+func is_casting() -> bool:
+	return hud.get_cast_bar_value() > 0 or cast_ability_codes.size() > 0
 
 func stretch() -> void:
 	tween.interpolate_property(

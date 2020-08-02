@@ -38,6 +38,8 @@ local game_config = {
 
     character_line_of_sight_point = { x = 0, y = 2, z = 0 },
 
+    max_composite_ability_size = 4,
+
     ability_codes = ability_codes,
     ability_config = {
 
@@ -48,7 +50,7 @@ local game_config = {
           max_target_distance = 40,
           power_cost = 10,
           is_projectile = true,
-          meters_per_second = 10,
+          meters_per_second = 20,
           on_hit = {
             effects = { effect_codes.BURN }
           },

@@ -44,9 +44,7 @@ func _physics_process(delta):
 	
 	var current_parent_y = _parent.rotation_degrees.y
 	
-	if _right_pressed:
-		rotation_degrees.y -= current_parent_y - _prev_parent_y
-	
+	rotation_degrees.y -= current_parent_y - _prev_parent_y
 	
 	v_rot = clamp(v_rot, v_min, v_max)
 	
