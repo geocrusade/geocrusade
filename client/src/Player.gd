@@ -33,8 +33,8 @@ func _unhandled_input(event : InputEvent):
 			_show_alert("Targe t too far!")
 		elif not _is_facing_target():
 			_show_alert("Not facing target!")
-#		elif not _is_target_in_line_of_sight():
-#			_show_alert("Target not in line of sight!")
+		elif not _is_target_in_line_of_sight():
+			_show_alert("Target not in line of sight!")
 		else:
 			MatchController.send_start_cast([ ServerConnection.game_config.ability_codes.FIRE ])
 	
@@ -55,7 +55,6 @@ func _physics_process(_delta: float) -> void:
 		.turn_to(camera.get_rotation_degrees().y)
 
 func setup(username: String, position: Vector3, turn_angle: float, health : int, power : int) -> void:
-	print("SETUP PLAYER")
 	self.username = username
 	self.health = health
 	self.power = power
@@ -113,8 +112,6 @@ func _is_target_in_line_of_sight() -> bool:
 
 func _is_facing_target() -> bool:
 	var direction = global_transform.origin - target.global_transform.origin 
-	print(direction)
-	print(global_transform.basis.z)
 	return direction.dot(global_transform.basis.z) < 0
 
 func _target_in_range(ability_code : int) -> bool:

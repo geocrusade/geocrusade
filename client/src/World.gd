@@ -1,8 +1,10 @@
 extends Node
 
 export var CharacterScene: PackedScene
+export var ProjectileScene : PackedScene
 
 var characters := {}
+var _projectiles = {}
 
 onready var player : Player = $Player
 
@@ -25,7 +27,8 @@ func _on_initial_state_received(
 	_targets: Dictionary,
 	healths: Dictionary,
 	powers: Dictionary,
-	casts: Dictionary
+	casts: Dictionary,
+	projectiles: Dictionary
 ) -> void:
 	var user_id: String = ServerConnection.get_user_id()
 	var username: String = names.get(user_id)
@@ -64,6 +67,8 @@ func _on_initial_state_received(
 				character.spawn()
 				if id in casts:
 					character.set_cast(casts[id])
+					
+	_update_projectiles(projectiles)
 
 func create_character(
 	id: String,
@@ -118,7 +123,8 @@ func _on_state_updated(
 	targets: Dictionary, 
 	healths: Dictionary, 
 	powers: Dictionary,
-	casts: Dictionary
+	casts: Dictionary,
+	projectiles: Dictionary
 ) -> void:
 	
 	var player_id = ServerConnection.get_user_id()
@@ -159,6 +165,8 @@ func _on_state_updated(
 			character.cancel_cast()
 				
 		character.update_state()
+		
+	_update_projectiles(projectiles)
 			
 
 func _on_character_input_event(
@@ -178,3 +186,25 @@ func _on_character_input_event(
 				player.target = characters[target_id]
 			if prev_target != player.target:
 				MatchController.send_target(target_id)
+				
+func _update_projectiles(latest_projectiles : Dictionary) -> void:
+	for id in latest_projectiles:
+		var proj = latest_projectiles[id]
+		var proj_pos = Vector3(proj.position.x, proj.position.y, proj.position.z)
+		if id in _projectiles:
+			_projectiles[id].update_position(proj_pos)
+		else:
+			var instance = ProjectileScene.instance()
+			add_child(instance)
+			instance.update_position(proj_pos)
+			_projectiles[id] = instance
+		
+		if proj.to_id in characters:
+			_projectiles[id].look_at(characters[proj.to_id].get_node("LineOfSitePoint").global_transform.origin, Vector3.UP)
+		elif proj.to_id == ServerConnection.get_user_id():
+			_projectiles[id].look_at(player.get_node("LineOfSitePoint").global_transform.origin, Vector3.UP)
+	
+	for id in _projectiles:
+		if not id in latest_projectiles:
+			_projectiles[id].queue_free()
+			_projectiles.erase(id)

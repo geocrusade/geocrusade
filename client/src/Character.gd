@@ -100,14 +100,8 @@ func start_cast(ability_codes : Array, start_time : float = 0) -> void:
 
 func set_cast(cast : Dictionary) -> void:
 	var cast_bar_label = ""
-	for i in range(cast.ability_codes.size()):
-		var config = ServerConnection.get_ability(cast.ability_codes[i])
-		if i == 0:
-			cast_bar_label += config.name
-		else:
-			cast_bar_label += "," + config.name
-	hud.set_cast_bar(cast.elapsed_time_seconds, cast.duration_seconds)
-	hud.set_cast_bar_label(cast_bar_label)
+	hud.set_cast_bar(cast.elapsed_time_seconds, cast.composite_ability.cast_duration_seconds)
+	hud.set_cast_bar_label(cast.composite_ability.name)
 
 func cancel_cast() -> void:
 	hud.set_cast_bar(0.0, 1.0)

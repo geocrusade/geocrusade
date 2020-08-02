@@ -1,0 +1,106 @@
+[gd_scene load_steps=12 format=2]
+
+[ext_resource path="res://src/Projectile.gd" type="Script" id=1]
+
+[sub_resource type="ParticlesMaterial" id=1]
+lifetime_randomness = 0.2
+emission_shape = 1
+emission_sphere_radius = 0.5
+direction = Vector3( 0, 0, 1 )
+spread = 3.0
+gravity = Vector3( 0, 0, 0 )
+initial_velocity = 8.0
+initial_velocity_random = 0.19
+angle = -720.0
+color = Color( 0.94902, 0.619608, 0.0588235, 1 )
+
+[sub_resource type="SpatialMaterial" id=2]
+albedo_color = Color( 0, 0, 0, 1 )
+emission_enabled = true
+emission = Color( 0.913725, 0.521569, 0.0980392, 1 )
+emission_energy = 0.83
+emission_operator = 0
+emission_on_uv2 = false
+
+[sub_resource type="SphereMesh" id=3]
+material = SubResource( 2 )
+radius = 0.1
+height = 0.2
+
+[sub_resource type="SpatialMaterial" id=4]
+albedo_color = Color( 0, 0, 0, 1 )
+emission_enabled = true
+emission = Color( 1, 0.584314, 0, 1 )
+emission_energy = 1.69
+emission_operator = 0
+emission_on_uv2 = false
+
+[sub_resource type="SphereMesh" id=5]
+material = SubResource( 4 )
+radius = 0.1
+height = 0.2
+
+[sub_resource type="ParticlesMaterial" id=6]
+lifetime_randomness = 0.2
+emission_shape = 1
+emission_sphere_radius = 0.5
+direction = Vector3( 0, 0, 1 )
+spread = 3.0
+gravity = Vector3( 0, 0, 0 )
+initial_velocity = 6.0
+initial_velocity_random = 0.19
+angle = -720.0
+color = Color( 0.94902, 0.619608, 0.0588235, 1 )
+
+[sub_resource type="SpatialMaterial" id=7]
+albedo_color = Color( 0, 0, 0, 1 )
+emission_enabled = true
+emission = Color( 0.658824, 0.486275, 0.0705882, 1 )
+emission_energy = 0.49
+emission_operator = 0
+emission_on_uv2 = false
+
+[sub_resource type="SphereMesh" id=8]
+material = SubResource( 7 )
+radius = 0.1
+height = 0.2
+
+[sub_resource type="SphereMesh" id=9]
+
+[sub_resource type="SpatialMaterial" id=10]
+albedo_color = Color( 0.968627, 0.627451, 0.0352941, 1 )
+emission_enabled = true
+emission = Color( 0.976471, 0.647059, 0.0235294, 1 )
+emission_energy = 0.65
+emission_operator = 0
+emission_on_uv2 = false
+
+[node name="Projectile" type="Spatial"]
+script = ExtResource( 1 )
+
+[node name="Particles" type="Particles" parent="."]
+amount = 50
+lifetime = 0.39
+randomness = 0.28
+process_material = SubResource( 1 )
+draw_pass_1 = SubResource( 3 )
+
+[node name="Particles3" type="Particles" parent="."]
+amount = 15
+lifetime = 0.16
+randomness = 0.28
+process_material = SubResource( 1 )
+draw_pass_1 = SubResource( 5 )
+
+[node name="Particles2" type="Particles" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1.9419 )
+amount = 30
+lifetime = 0.62
+randomness = 0.37
+process_material = SubResource( 6 )
+draw_pass_1 = SubResource( 8 )
+
+[node name="CSGMesh" type="CSGMesh" parent="."]
+transform = Transform( 0.3, 0, 0, 0, 0.3, 0, 0, 0, 0.3, 0, 0, 0 )
+mesh = SubResource( 9 )
+material = SubResource( 10 )

@@ -9,7 +9,6 @@ local match_handler = {}
 local WORLD_SPAWN_POSITION = { x = 0, y = 0, z = 0 }
 local TEAM1_SPAWN_POSITION = { x = 150, y = 6, z = -45 }
 local TEAM2_SPAWN_POSITION = { x = 150, y = 6, z = 45 }
-
 local TICK_RATE = 20
 
 local OpCodes = {
@@ -22,6 +21,12 @@ local OpCodes = {
     start_cast = 7,
     cancel_cast = 8,
 }
+
+local in_line_of_sight = function(pos_a, pos_b)
+  pos_a = util.vector_add(pos_a, game_config.character_line_of_sight_point)
+  pos_b = util.vector_add(pos_b, game_config.character_line_of_sight_point)
+  return not util.line_intersects_faces(pos_a, pos_b, arena_vertices)
+end
 
 local commands = {}
 
@@ -59,33 +64,38 @@ end
 
 commands[OpCodes.start_cast] = function(data, state)
     if state.users[data.id] ~= nil and state.targets[data.id] ~= nil then
-      local power_cost = 0
-      local duration_seconds = 0
-      local max_target_distance = 0
-      for i, code in ipairs(data.ability_codes) do
-        local ability = game_config.ability_config[code]
-        if i == 1 then
-          power_cost = power_cost + ability.primary.power_cost
-          duration_seconds = duration_seconds + ability.primary.cast_duration_seconds
-          max_target_distance = ability.primary.max_target_distance
-        else
-          power_cost = power_cost + ability.secondary.power_cost
-          duration_seconds = duration_seconds + ability.secondary.cast_duration_seconds
-        end
+      local ability_config = game_config.ability_config[data.ability_codes[1]]
+      local primary_ability = ability_config.primary
+      local composite_ability = util.table_copy(primary_ability)
+      composite_ability.name = ability_config.name
+      for i=2, table.getn(data.ability_codes) do
+        ability_config = game_config.ability_config[data.ability_codes[i]]
+        local secondary_ability = ability_config.secondary
+        composite_ability.name = string.format("%s,%s", composite_ability.name, ability_config.name)
+        composite_ability.cast_duration_seconds = composite_ability.cast_duration_seconds + secondary_ability.cast_duration_seconds
+        composite_ability.max_target_distance = composite_ability.max_target_distance + secondary_ability.max_target_distance
+        composite_ability.power_cost = composite_ability.power_cost + secondary_ability.power_cost
+        composite_ability.meters_per_second = composite_ability.power_cost + secondary_ability.meters_per_second
+
+        composite_ability.on_hit.health_delta = composite_ability.on_hit.health_delta + secondary_ability.on_hit.health_delta
+        composite_ability.on_hit_enemy.health_delta = composite_ability.on_hit_enemy.health_delta + secondary_ability.on_hit_enemy.health_delta
+        composite_ability.on_hit_friendly.health_delta = composite_ability.on_hit_friendly.health_delta + secondary_ability.on_hit_friendly.health_delta
+
+        util.table_insert_all(composite_ability.on_hit.effects, secondary_ability.on_hit.effects)
+        util.table_insert_all(composite_ability.on_hit_enemy.effects, secondary_ability.on_hit_enemy.effects)
+        util.table_insert_all(composite_ability.on_hit_friendly.effects, secondary_ability.on_hit_friendly.effects)
+
       end
-      if state.powers[data.id] >= power_cost then
+      if state.powers[data.id] >= composite_ability.power_cost then
         local target_id = state.targets[data.id]
         local pos = state.positions[data.id]
         local target_pos = state.positions[target_id]
         local distance_to_target = util.get_vector_distance(pos, target_pos)
-        if distance_to_target <= max_target_distance and not util.line_intersects_faces(pos, target_pos, arena_vertices) then
+        if distance_to_target <= composite_ability.max_target_distance and in_line_of_sight(pos, target_pos) then
           state.casts[data.id] = {
-            ability_codes = data.ability_codes,
+            composite_ability = composite_ability,
             target_id = target_id,
             elapsed_time_seconds = 0.0,
-            power_cost = power_cost,
-            duration_seconds = duration_seconds,
-            max_target_distance = max_target_distance
           }
         end
       end
@@ -111,7 +121,9 @@ function match_handler.match_init(_, params)
       targets = {},
       healths = {},
       powers = {},
-      casts = {}
+      casts = {},
+      projectiles = {},
+      projectile_count = 0
     }
     local label = "world"
     if params.is_arena then
@@ -182,7 +194,8 @@ function match_handler.match_join(_, dispatcher, _, state, joining_users)
         trg = state.targets,
         hlt = state.healths,
         pwr = state.powers,
-        cst = state.casts
+        cst = state.casts,
+        prj = state.projectiles
     }
     local encoded = nk.json_encode(data)
     dispatcher.broadcast_message(OpCodes.initial_state, encoded, joining_users)
@@ -233,7 +246,8 @@ function match_handler.match_loop(_, dispatcher, _, state, messages)
         trg = state.targets,
         hlt = state.healths,
         pwr = state.powers,
-        cst = state.casts
+        cst = state.casts,
+        prj = state.projectiles
     }
 
     local encoded_update = nk.json_encode(update)
@@ -242,16 +256,51 @@ function match_handler.match_loop(_, dispatcher, _, state, messages)
 
 
     local delta_seconds = 1.0 / TICK_RATE
+
     for id, cast in pairs(state.casts) do
       local input = state.inputs[id]
       if input ~= nil and (input.jmp == 1 or not util.is_zero_vector(input.dir)) then
         state.casts[id] = nil
-      elseif cast.elapsed_time_seconds >= cast.duration_seconds then
+      elseif cast.elapsed_time_seconds >= cast.composite_ability.cast_duration_seconds then
+        if in_line_of_sight(state.positions[id], state.positions[cast.target_id]) then
+          state.powers[id] = state.powers[id] - cast.composite_ability.power_cost
+          if cast.composite_ability.is_projectile then
+            state.projectiles[tostring(state.projectile_count)] = {
+              from_id = id,
+              to_id = cast.target_id,
+              position = util.vector_add(state.positions[id], game_config.character_line_of_sight_point),
+              composite_ability = cast.composite_ability
+            }
+            state.projectile_count = state.projectile_count + 1
+          end
+        end
         state.casts[id] = nil
-        state.powers[id] = state.powers[id] - cast.power_cost
       else
         cast.elapsed_time_seconds = cast.elapsed_time_seconds + delta_seconds
         state.casts[id] = cast
+      end
+    end
+
+    for id, proj in pairs(state.projectiles) do
+      local to_pos = util.vector_add(state.positions[proj.to_id], game_config.character_line_of_sight_point)
+      if to_pos ~= nil then
+        if util.get_vector_distance(to_pos, proj.position) <= 1 then
+          state.healths[proj.to_id] = state.healths[proj.to_id] + proj.composite_ability.on_hit.health_delta
+          local to_team = state.users[proj.to_id].team
+          local from_team = state.users[proj.from_id].team
+          local special_hit_key = "on_hit_friendly"
+          if to_team ~= from_team or to_team == nil then
+            special_hit_key = "on_hit_enemy"
+          end
+          state.healths[proj.to_id] = state.healths[proj.to_id] + proj.composite_ability[special_hit_key].health_delta
+          state.projectiles[id] = nil
+        else
+          local diff = util.vector_subtract(to_pos, proj.position)
+          proj.position = util.vector_add(proj.position, util.vector_scale(util.vector_normalize(diff), delta_seconds * proj.composite_ability.meters_per_second))
+          state.projectiles[id] = proj
+        end
+      else
+        state.projectiles[id] = nil
       end
     end
 

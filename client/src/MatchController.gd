@@ -18,8 +18,8 @@ signal arena_match_join_failed
 
 
 signal users_changed
-signal state_updated(positions, turn_angles, inputs, targets, healths, powers, casts)
-signal initial_state_received(positions, turn_angles, inputs, names, targets, healths, powers, casts)
+signal state_updated(positions, turn_angles, inputs, targets, healths, powers, casts, projectiles)
+signal initial_state_received(positions, turn_angles, inputs, names, targets, healths, powers, casts, projectiles)
 signal character_spawned(id)
 
 
@@ -203,8 +203,9 @@ func _on_socket_received_match_state(match_state: NakamaRTAPI.MatchData) -> void
 			var healths: Dictionary = decoded.hlt
 			var powers: Dictionary = decoded.pwr
 			var casts: Dictionary = decoded.cst
+			var projectiles: Dictionary = decoded.prj
 
-			emit_signal("state_updated", positions, turn_angles, inputs, targets, healths, powers, casts)
+			emit_signal("state_updated", positions, turn_angles, inputs, targets, healths, powers, casts, projectiles)
 			
 		OpCodes.INITIAL_STATE:
 			var decoded: Dictionary = JSON.parse(raw).result
@@ -217,7 +218,8 @@ func _on_socket_received_match_state(match_state: NakamaRTAPI.MatchData) -> void
 			var healths: Dictionary = decoded.hlt
 			var powers: Dictionary = decoded.pwr
 			var casts: Dictionary = decoded.cst
-			emit_signal("initial_state_received", positions, turn_angles, inputs, names, targets, healths, powers, casts)
+			var projectiles: Dictionary = decoded.prj
+			emit_signal("initial_state_received", positions, turn_angles, inputs, names, targets, healths, powers, casts, projectiles)
 
 func _on_matchmaker_matched(matched : NakamaRTAPI.MatchmakerMatched):
 	_matchmaker_matched = matched

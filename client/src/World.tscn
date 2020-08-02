@@ -1,9 +1,10 @@
-[gd_scene load_steps=9 format=2]
+[gd_scene load_steps=10 format=2]
 
 [ext_resource path="res://src/Player.tscn" type="PackedScene" id=1]
 [ext_resource path="res://src/World.gd" type="Script" id=2]
 [ext_resource path="res://src/Character.tscn" type="PackedScene" id=3]
 [ext_resource path="res://src/ArenaMatchMakerUI.tscn" type="PackedScene" id=4]
+[ext_resource path="res://src/Projectile.tscn" type="PackedScene" id=5]
 [ext_resource path="res://src/Arena.tscn" type="PackedScene" id=6]
 
 [sub_resource type="CubeMesh" id=1]
@@ -16,6 +17,7 @@ background_mode = 1
 [node name="World" type="Spatial"]
 script = ExtResource( 2 )
 CharacterScene = ExtResource( 3 )
+ProjectileScene = ExtResource( 5 )
 
 [node name="ArenaMatchMakerUI" parent="." instance=ExtResource( 4 )]
 

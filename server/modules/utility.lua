@@ -13,12 +13,37 @@ utility["merge_table_into"] = function(a, b)
   return b
 end
 
+utility["table_copy"] = function(t)
+  local t2 = {};
+  for k,v in pairs(t) do
+    if type(v) == "table" then
+        t2[k] = utility.table_copy(v);
+    else
+        t2[k] = v;
+    end
+  end
+  return t2;
+end
+
+utility["vector_magnitude"] = function(a)
+  return math.sqrt(a.x^2 + a.y^2 + a.z^2)
+end
+
+utility["vector_normalize"] = function(a)
+  local mag = utility.vector_magnitude(a)
+  return {
+    x = a.x / mag,
+    y = a.y / mag,
+    z = a.z / mag
+  }
+end
+
 utility["get_vector_distance"] = function(v1, v2)
   local x = v1.x - v2.x
   local y = v1.y - v2.y
   local z = v1.z - v2.z
 
-  return math.sqrt(x^2 + y^2 + z^2)
+  return utility.vector_magnitude({ x = x, y = y, z = z})
 end
 
 utility["is_zero_vector"] = function(v)
@@ -27,6 +52,10 @@ end
 
 utility["vector_dot_product"] = function(a, b)
   return a.x*b.x + a.y*b.y + a.z*b.z
+end
+
+utility["vector_scale"] = function(v, scale)
+  return { x = v.x * scale, y = v.y * scale, z = v.z * scale }
 end
 
 utility["vector_cross_product"] = function(a, b)
@@ -42,6 +71,14 @@ utility["vector_subtract"] = function(a, b)
     x = a.x - b.x,
     y = a.y - b.y,
     z = a.z - b.z
+  }
+end
+
+utility["vector_add"] = function(a, b)
+  return {
+    x = a.x + b.x,
+    y = a.y + b.y,
+    z = a.z + b.z
   }
 end
 
@@ -91,6 +128,12 @@ utility["line_intersects_faces"] = function(p1, p2, face_vertices)
   end
 
   return false
+end
+
+utility["table_insert_all"] = function(t1, t2)
+  for _, v in ipairs(t2) do
+      table.insert(t1, v)
+  end
 end
 
 return utility

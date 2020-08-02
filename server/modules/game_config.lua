@@ -13,9 +13,10 @@ local ability_defaults = {
   max_target_distance = 0,
   power_cost = 0,
   is_projectile = false,
-  meters_per_second = 3.0,
+  meters_per_second = 0,
   on_hit = {
-    effects = {}
+    effects = {},
+    health_delta = 0
   },
   on_hit_enemy = {
     effects = {},
@@ -35,6 +36,8 @@ local effect_defaults = {
 
 local game_config = {
 
+    character_line_of_sight_point = { x = 0, y = 2, z = 0 },
+
     ability_codes = ability_codes,
     ability_config = {
 
@@ -42,9 +45,10 @@ local game_config = {
         name = "Fire",
         primary = {
           cast_duration_seconds = 1.0,
-          max_target_distance = 30,
+          max_target_distance = 40,
           power_cost = 10,
           is_projectile = true,
+          meters_per_second = 10,
           on_hit = {
             effects = { effect_codes.BURN }
           },
@@ -54,6 +58,8 @@ local game_config = {
         },
         secondary = {
           cast_duration_seconds = 0.5,
+          max_target_distance = 5,
+          meters_per_second = 0,
           power_cost = 5,
           on_hit_enemy = {
             health_delta = -5
@@ -64,6 +70,7 @@ local game_config = {
     },
 
     effect_codes = effect_codes,
+    effect_defaults = effect_defaults,
     effect_config = {
       [effect_codes.BURN] = {
         name = "Burn",
