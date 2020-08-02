@@ -52,7 +52,7 @@ func _physics_process(_delta: float) -> void:
 		MatchController.send_cancel_cast()
 		
 	if _right_button_pressed:
-		global_transform.basis = camera.get_horizontal_basis()
+		.turn_to(camera.get_rotation_degrees().y)
 
 func setup(username: String, position: Vector3, turn_angle: float, health : int, power : int) -> void:
 	print("SETUP PLAYER")
@@ -113,7 +113,9 @@ func _is_target_in_line_of_sight() -> bool:
 
 func _is_facing_target() -> bool:
 	var direction = global_transform.origin - target.global_transform.origin 
-	return direction.dot(global_transform.basis.z) > 0
+	print(direction)
+	print(global_transform.basis.z)
+	return direction.dot(global_transform.basis.z) < 0
 
 func _target_in_range(ability_code : int) -> bool:
 	return target.global_transform.origin.distance_to(global_transform.origin) < ServerConnection.get_ability(ability_code).primary.max_target_distance 
