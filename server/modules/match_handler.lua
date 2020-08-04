@@ -155,6 +155,7 @@ function match_handler.match_init(_, params)
       targets = {},
       healths = {},
       powers = {},
+      effects = {},
       casts = {},
       projectiles = {},
       projectile_count = 0
@@ -215,6 +216,7 @@ function match_handler.match_join(_, dispatcher, _, state, joining_users)
 
         state.healths[user.user_id] = 100
         state.powers[user.user_id] = 100
+        state.effects[user.user_id] = {}
 
         state.casts[user.user_id] = nil
     end
@@ -228,8 +230,9 @@ function match_handler.match_join(_, dispatcher, _, state, joining_users)
         trg = state.targets,
         hlt = state.healths,
         pwr = state.powers,
+        eff = state.effects,
         cst = state.casts,
-        prj = state.projectiles
+        prj = state.projectiles,
     }
     local encoded = nk.json_encode(data)
     dispatcher.broadcast_message(OpCodes.initial_state, encoded, joining_users)
@@ -249,6 +252,7 @@ function match_handler.match_leave(_, _, _, state, leaving_users)
         state.targets[id] = nil
         state.healths[id] = nil
         state.powers[id] = nil
+        state.effects[id] = nil
         state.casts[id] = nil
 
         -- remove this user as a target of others
@@ -261,7 +265,35 @@ function match_handler.match_leave(_, _, _, state, leaving_users)
     return state
 end
 
-function match_handler.match_loop(_, dispatcher, _, state, messages)
+local add_new_effects = function(current, new_codes)
+  local result_effects = {}
+  for code, curr_eff in pairs(current) do
+    local result_effect = util.table_copy(curr_eff)
+    for _, new_code in ipairs(new_codes) do
+      local config = game_config.effect_config[new_code]
+      if code == new_code and result_effect.stack_count < config.max_stacks then
+        result_effect.stack_count = result_effect.stack_count + 1
+        result_effect.remaining_seconds = config.duration_seconds
+      end
+    end
+    result_effects[code] = result_effect
+  end
+
+  for _, new_code in ipairs(new_codes) do
+    if current[new_code] == nil then
+      local config = game_config.effect_config[new_code]
+      local result_effect = {
+        stack_count = 1,
+        remaining_seconds = config.duration_seconds
+      }
+      result_effects[new_code] = result_effect
+    end
+  end
+
+  return result_effects
+end
+
+function match_handler.match_loop(_, dispatcher, tick, state, messages)
     for _, message in ipairs(messages) do
         local op_code = message.op_code
 
@@ -280,6 +312,7 @@ function match_handler.match_loop(_, dispatcher, _, state, messages)
         trg = state.targets,
         hlt = state.healths,
         pwr = state.powers,
+        eff = state.effects,
         cst = state.casts,
         prj = state.projectiles
     }
@@ -288,8 +321,9 @@ function match_handler.match_loop(_, dispatcher, _, state, messages)
 
     dispatcher.broadcast_message(OpCodes.update_state, encoded_update)
 
-
     local delta_seconds = 1.0 / TICK_RATE
+
+    -- CAST PROCESSING
 
     for id, cast in pairs(state.casts) do
       local input = state.inputs[id]
@@ -315,11 +349,32 @@ function match_handler.match_loop(_, dispatcher, _, state, messages)
       end
     end
 
+    -- EFFECTS PROCESSING
+
+    if math.fmod(tick, TICK_RATE) == 0 then
+      for id, user_effects in pairs(state.effects) do
+        for code, effect in pairs(user_effects) do
+          local config = game_config.effect_config[code]
+          state.healths[id] = state.healths[id] + (config.health_per_second * effect.stack_count)
+          if effect.remaining_seconds - 1 > 0 then
+            effect.remaining_seconds = effect.remaining_seconds - 1
+          else
+            user_effects[code] = nil
+          end
+        end
+        state.effects[id] = user_effects
+      end
+    end
+
+    -- PROJECTILE PROCESSING
+
     for id, proj in pairs(state.projectiles) do
-      local to_pos = util.vector_add(state.positions[proj.to_id], game_config.character_line_of_sight_point)
+      local to_pos = state.positions[proj.to_id]
       if to_pos ~= nil then
-        if util.get_vector_distance(to_pos, proj.position) <= 1 then
+        to_pos = util.vector_add(to_pos, game_config.character_line_of_sight_point)
+        if util.get_vector_distance(to_pos, proj.position) < 1 then
           state.healths[proj.to_id] = state.healths[proj.to_id] + proj.composite_ability.on_hit.health_delta
+          state.effects[proj.to_id] = add_new_effects(state.effects[proj.to_id], proj.composite_ability.on_hit.effects)
           local to_team = state.users[proj.to_id].team
           local from_team = state.users[proj.from_id].team
           local special_hit_key = "on_hit_friendly"
@@ -327,6 +382,7 @@ function match_handler.match_loop(_, dispatcher, _, state, messages)
             special_hit_key = "on_hit_enemy"
           end
           state.healths[proj.to_id] = state.healths[proj.to_id] + proj.composite_ability[special_hit_key].health_delta
+          state.effects[proj.to_id] = add_new_effects(state.effects[proj.to_id], proj.composite_ability[special_hit_key].effects)
           state.projectiles[id] = nil
         else
           local diff = util.vector_subtract(to_pos, proj.position)
@@ -337,7 +393,6 @@ function match_handler.match_loop(_, dispatcher, _, state, messages)
         state.projectiles[id] = nil
       end
     end
-
 
     for _, input in pairs(state.inputs) do
         input.jmp = 0

@@ -1,8 +1,12 @@
 extends Spatial
 
+var effect_grid_square_scene : PackedScene = preload("res://src/EffectGridSquare.tscn")
+
+
 onready var control : Control = $Control
 onready var health_bar : ProgressBar = $Control/HealthBar
 onready var power_bar : ProgressBar = $Control/PowerBar
+onready var effect_grid : GridContainer = $Control/EffectGrid
 onready var cast_bar : ProgressBar = $Control/CastBar
 onready var cast_bar_label : Label = $Control/CastBar/Label
 onready var username_label : Label = $Control/Username
@@ -51,6 +55,24 @@ func set_health(value : int) -> void:
 	
 func set_power(value : int) -> void:
 	power_bar.value = value
+
+func add_effect(name : String, color : Color, duration_seconds : float, stack_count : int) -> void:
+	var square = effect_grid_square_scene.instance()
+	effect_grid.add_child(square)
+	square.name = name
+	square.set_color(color)
+	square.set_time_remaining(duration_seconds)
+	square.set_stack_count(stack_count)
+
+func update_effect(name : String, duration_seconds : float, stack_count : int) -> void:
+	var square = effect_grid.get_node(name)
+	square.set_time_remaining(duration_seconds)
+	square.set_stack_count(stack_count)
+
+func remove_effect(name : String) -> void:
+	var square = effect_grid.get_node(name)
+	effect_grid.remove_child(square)
+	square.queue_free()
 
 func set_cast_bar(current_seconds : float, total_seconds : float) -> void:
 	cast_bar.ratio = current_seconds / total_seconds

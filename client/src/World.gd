@@ -28,13 +28,14 @@ func _on_initial_state_received(
 	healths: Dictionary,
 	powers: Dictionary,
 	casts: Dictionary,
-	projectiles: Dictionary
+	projectiles: Dictionary,
+	effects: Dictionary
 ) -> void:
 	var user_id: String = ServerConnection.get_user_id()
 	var username: String = names.get(user_id)
 	var p = positions[user_id]
 	var player_position := Vector3(p.x, p.y, p.z)
-	player.setup(username, player_position, turn_angles[user_id], healths[user_id], powers[user_id])
+	player.setup(username, player_position, turn_angles[user_id], healths[user_id], powers[user_id], effects[user_id])
 	player.connect("input_event", self, "_on_character_input_event", [ ServerConnection.get_user_id() ])
 	
 	var users = MatchController.users
@@ -53,7 +54,8 @@ func _on_initial_state_received(
 					character_direction,
 					healths[id],
 					powers[id],
-					casts
+					casts,
+					effects[id]
 				)
 			else:
 				var character = characters[id]
@@ -63,6 +65,7 @@ func _on_initial_state_received(
 				character.next_jump = inputs[id].jmp == 1
 				character.health = healths[id]
 				character.power = powers[id]
+				character.effects = effects[id]
 				character.update_state()
 				character.spawn()
 				if id in casts:
@@ -78,7 +81,8 @@ func create_character(
 	direction: Vector3,
 	health: int,
 	power: int,
-	casts: Dictionary
+	casts: Dictionary,
+	effects: Array
 ) -> void:
 	var character := CharacterScene.instance()
 	#warning-ignore: return_value_discarded
@@ -87,6 +91,7 @@ func create_character(
 	character.username = username
 	character.health = health
 	character.power = power
+	character.effects = effects
 	if id in casts:
 		character.set_cast(casts[id])
 	character.set_global_position(position)
@@ -100,7 +105,7 @@ func _on_users_changed() -> void:
 
 	for key in users:
 		if not key in characters:
-			create_character(key, users[key].username, Vector3.ZERO, 0.0, Vector3.ZERO, 100, 100, {})
+			create_character(key, users[key].username, Vector3.ZERO, 0.0, Vector3.ZERO, 100, 100, {}, [])
 
 	var to_delete := []
 	for key in characters.keys():
@@ -124,12 +129,13 @@ func _on_state_updated(
 	healths: Dictionary, 
 	powers: Dictionary,
 	casts: Dictionary,
-	projectiles: Dictionary
+	projectiles: Dictionary,
+	effects: Dictionary
 ) -> void:
-	
 	var player_id = ServerConnection.get_user_id()
 	player.health = healths[player_id]
 	player.power = powers[player_id]
+	player.effects = effects[player_id]
 	
 	if player_id in casts:
 		player.set_cast(casts[player_id])
@@ -159,6 +165,8 @@ func _on_state_updated(
 			character.health = healths[key]
 		if key in powers:
 			character.power = powers[key]
+		if key in effects:
+			character.effects = effects[key]
 		if key in casts:
 			character.set_cast(casts[key])
 		else:

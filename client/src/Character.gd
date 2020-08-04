@@ -28,6 +28,8 @@ var health : int = 100 setget _set_health
 var power : int = 100 setget _set_power
 var target : Character = null setget _set_target
 
+var effects : Dictionary = {} setget _set_effects
+
 var last_position := Vector3.ZERO
 var last_input := Vector3.ZERO
 var next_position := Vector3.ZERO
@@ -228,7 +230,27 @@ func _set_health(value : int) -> void:
 func _set_power(value : int) -> void:
 	power = value
 	hud.set_power(value)
-
+	
+func _set_effects(new_effects : Dictionary) -> void:
+	for code in effects:
+		if not code in new_effects:
+			var effect_config = ServerConnection.get_effect(code)
+			hud.remove_effect(effect_config.name)
+			
+	
+	for code in new_effects:
+		var new_eff = new_effects[code]
+		var effect_config = ServerConnection.get_effect(code)
+		var color_config = effect_config.color
+		var color = Color(color_config.r, color_config.g, color_config.b)
+		var effect_name = effect_config.name
+		if not code in effects:
+			hud.add_effect(effect_name, color, new_eff.remaining_seconds, new_eff.stack_count)
+		else:
+			hud.update_effect(effect_name, new_eff.remaining_seconds, new_eff.stack_count)
+	
+	effects = new_effects
+	
 func _set_target(value : Character) -> void:
 	if target != value:
 		target = value

@@ -18,8 +18,8 @@ signal arena_match_join_failed
 
 
 signal users_changed
-signal state_updated(positions, turn_angles, inputs, targets, healths, powers, casts, projectiles)
-signal initial_state_received(positions, turn_angles, inputs, names, targets, healths, powers, casts, projectiles)
+signal state_updated(positions, turn_angles, inputs, targets, healths, powers, casts, projectiles, effects)
+signal initial_state_received(positions, turn_angles, inputs, names, targets, healths, powers, casts, projectiles, effects)
 signal character_spawned(id)
 
 
@@ -208,8 +208,9 @@ func _on_socket_received_match_state(match_state: NakamaRTAPI.MatchData) -> void
 			var powers: Dictionary = decoded.pwr
 			var casts: Dictionary = decoded.cst
 			var projectiles: Dictionary = decoded.prj
+			var effects: Dictionary = _process_effects(decoded.eff)
 
-			emit_signal("state_updated", positions, turn_angles, inputs, targets, healths, powers, casts, projectiles)
+			emit_signal("state_updated", positions, turn_angles, inputs, targets, healths, powers, casts, projectiles, effects)
 			
 		OpCodes.INITIAL_STATE:
 			var decoded: Dictionary = JSON.parse(raw).result
@@ -223,7 +224,23 @@ func _on_socket_received_match_state(match_state: NakamaRTAPI.MatchData) -> void
 			var powers: Dictionary = decoded.pwr
 			var casts: Dictionary = decoded.cst
 			var projectiles: Dictionary = decoded.prj
-			emit_signal("initial_state_received", positions, turn_angles, inputs, names, targets, healths, powers, casts, projectiles)
+			var effects : Dictionary = _process_effects(decoded.eff)
+			
+			
+			
+				
+			emit_signal("initial_state_received", positions, turn_angles, inputs, names, targets, healths, powers, casts, projectiles, effects)
+
+func _process_effects(effects : Dictionary) -> Dictionary:
+	for id in effects:
+		var effects_arr = effects[id]
+		var effects_dict = {}
+		for i in range(effects_arr.size()):
+			var val = effects_arr[i]
+			if val != null:
+				effects_dict[i] = val
+		effects[id] = effects_dict
+	return effects
 
 func _on_matchmaker_matched(matched : NakamaRTAPI.MatchmakerMatched):
 	_matchmaker_matched = matched

@@ -76,6 +76,7 @@ local game_config = {
     effect_config = {
       [effect_codes.BURN] = {
         name = "Burn",
+        color = { r = 255, g = 0, b = 0 },
         duration_seconds = 3,
         health_per_second = -1,
         max_stacks = 4

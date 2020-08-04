@@ -63,10 +63,11 @@ func _physics_process(_delta: float) -> void:
 	if _right_button_pressed:
 		.turn_to(camera.get_rotation_degrees().y)
 
-func setup(username: String, position: Vector3, turn_angle: float, health : int, power : int) -> void:
+func setup(username: String, position: Vector3, turn_angle: float, health : int, power : int, effects : Dictionary) -> void:
 	self.username = username
 	self.health = health
 	self.power = power
+	self.effects = effects
 	set_global_position(position)
 	turn_to(turn_angle)
 	spawn()
