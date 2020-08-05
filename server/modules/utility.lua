@@ -1,3 +1,4 @@
+local nk = require("nakama")
 local utility = {}
 
 utility["merge_table_into"] = function(a, b)
@@ -23,6 +24,17 @@ utility["table_copy"] = function(t)
     end
   end
   return t2;
+end
+
+utility["table_log"] = function(t)
+  for k,v in pairs(t) do
+    if type(v) == "table" then
+      nk.logger_info(("--- %q ---"):format(k))
+      utility.table_log(v);
+    else
+      nk.logger_info(("%q = %q"):format(k, v))
+    end
+  end
 end
 
 utility["vector_magnitude"] = function(a)

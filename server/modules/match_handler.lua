@@ -131,7 +131,7 @@ commands[OpCodes.update_cast] = function(data, state)
     if #data.ability_codes + #current_ability_codes  <= game_config.max_composite_ability_size then
       local ability_codes = util.table_copy(current_ability_codes)
       util.table_insert_all(ability_codes, data.ability_codes)
-      local current_cast = state.casts[data.id]
+      local current_cast = util.table_copy(state.casts[data.id])
       current_cast.composite_ability = get_composite_ability(ability_codes)
       current_cast.ability_codes = ability_codes
       local target_id = state.targets[data.id]
@@ -281,11 +281,15 @@ local add_new_effects = function(current, new_codes)
 
   for _, new_code in ipairs(new_codes) do
     if current[new_code] == nil then
+      local result_effect = result_effects[new_code]
       local config = game_config.effect_config[new_code]
-      local result_effect = {
-        stack_count = 1,
-        remaining_seconds = config.duration_seconds
-      }
+      if result_effect == nil then
+        result_effect = {}
+        result_effect.stack_count = 1
+        result_effect.remaining_seconds = config.duration_seconds
+      else
+        result_effect.stack_count = result_effect.stack_count + 1
+      end
       result_effects[new_code] = result_effect
     end
   end
