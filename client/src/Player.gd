@@ -12,6 +12,8 @@ onready var camera: Spatial = $PlayerCamera
 onready var alert : Label = $Alert
 onready var alert_timer : Timer = $AlertTimer
 
+var composite_ability = {}
+
 func _ready() -> void:
 	#warning-ignore: return_value_discarded
 	timer.connect("timeout", self, "_on_timer_timeout")
@@ -25,38 +27,21 @@ func _unhandled_input(event : InputEvent):
 		jump()
 	
 	if event.is_action_pressed("ability_1"):
-		if target == null:
-			_show_alert("No target!")
-			return
-		
-		var composite_ability = _get_new_composite_ability(ServerConnection.game_config.ability_codes.FIRE)
-		if power < composite_ability.power_cost:
-			_show_alert("Not enough power!")
-		elif not _target_in_range(composite_ability.max_target_distance):
-			_show_alert("Target too far!")
-		elif not _is_facing_target():
-			_show_alert("Not facing target!")
-		elif not _is_target_in_line_of_sight():
-			_show_alert("Target not in line of sight!")
-		elif not is_casting():
-			cast_ability_codes = [ ServerConnection.game_config.ability_codes.FIRE ]
-			MatchController.send_start_cast(cast_ability_codes)
-		elif cast_ability_codes.size() < ServerConnection.game_config.max_composite_ability_size:
-			cast_ability_codes.append(ServerConnection.game_config.ability_codes.FIRE)
-			MatchController.send_cast_update([ ServerConnection.game_config.ability_codes.FIRE  ])
-		else:
-			_show_alert("Can't cast more abilities!")
+		_try_cast_ability(ServerConnection.game_config.ability_codes.FIRE )
+	
+	if event.is_action_pressed("ability_2"):
+		_try_cast_ability(ServerConnection.game_config.ability_codes.ONE_HAND_WEAPON)
+			
 	
 	if event is InputEventMouseButton:
 		if event.button_index == BUTTON_RIGHT:
 			_right_button_pressed =  event.pressed
 		if event.button_index == BUTTON_LEFT:
-			_left_button_pressed =event.pressed
-	
+			_left_button_pressed =event.pressed	
 	
 func _physics_process(_delta: float) -> void:
 	direction = _get_direction()
-	if direction != Vector3.ZERO and is_casting():
+	if direction != Vector3.ZERO and is_casting() and not self.composite_ability.get("cast_while_moving", false):
 		.cancel_cast()
 		MatchController.send_cancel_cast()
 		
@@ -81,7 +66,31 @@ func spawn() -> void:
 func jump() -> void:
 	.jump()
 	MatchController.send_jump()
-	
+
+func _try_cast_ability(ability_code : int) -> void:
+	if target == null:
+		_show_alert("No target!")
+		return
+		
+	var composite_ability = _get_new_composite_ability(ability_code)
+	if power < composite_ability.power_cost:
+		_show_alert("Not enough power!")
+	elif not _target_in_range(composite_ability.max_target_distance):
+		_show_alert("Target too far!")
+	elif not _is_facing_target():
+		_show_alert("Not facing target!")
+	elif not _is_target_in_line_of_sight():
+		_show_alert("Target not in line of sight!")
+	elif not is_casting():
+		self.composite_ability = composite_ability
+		cast_ability_codes = [ ability_code ]
+		MatchController.send_start_cast(cast_ability_codes)
+	elif cast_ability_codes.size() < ServerConnection.game_config.max_composite_ability_size:
+		cast_ability_codes.append(ability_code)
+		self.composite_ability = composite_ability
+		MatchController.send_cast_update([ ability_code  ])
+	else:
+		_show_alert("Can't cast more abilities!")	
 
 func _get_direction() -> Vector3:
 	var new_direction := Vector3.ZERO

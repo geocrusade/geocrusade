@@ -1,15 +1,18 @@
 local util = require("utility")
 
 local ability_codes = {
-  ["FIRE"] = 1
+  FIRE = 1,
+  ONE_HAND_WEAPON = 2
 }
 
 local effect_codes = {
-  ["BURN"] = 1
+  BURN = 1,
+  BLEED = 2
 }
 
 local ability_defaults = {
   cast_duration_seconds = 0.0,
+  cast_while_moving = false,
   max_target_distance = 0,
   power_cost = 0,
   is_projectile = false,
@@ -67,6 +70,29 @@ local game_config = {
             health_delta = -5
           }
         }
+      },
+
+      [ability_codes.ONE_HAND_WEAPON] = {
+        name = "One Hand Weapon",
+        primary = {
+          cast_duration_seconds = 0.25,
+          cast_while_moving = true,
+          max_target_distance = 5,
+          power_cost = 2,
+          on_hit_enemy = {
+            effects = { effect_codes.BLEED },
+            health_delta = -2
+          }
+        },
+        secondary = {
+          cast_duration_seconds = 0.1,
+          max_target_distance = 0,
+          power_cost = 1,
+          on_hit_enemy = {
+            effects = { effect_codes.BLEED },
+            health_delta = -1
+          }
+        }
       }
 
     },
@@ -76,8 +102,15 @@ local game_config = {
     effect_config = {
       [effect_codes.BURN] = {
         name = "Burn",
-        color = { r = 255, g = 0, b = 0 },
+        color = { r = 255, g = 69, b = 0 },
         duration_seconds = 3,
+        health_per_second = -1,
+        max_stacks = 4
+      },
+      [effect_codes.BLEED] = {
+        name = "Bleed",
+        color = { r = 255, g = 0, b = 0 },
+        duration_seconds = 5,
         health_per_second = -1,
         max_stacks = 4
       }

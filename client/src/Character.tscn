@@ -104,6 +104,7 @@ custom_colors/font_color = Color( 1, 1, 1, 1 )
 custom_colors/font_color_shadow = Color( 0, 0, 0, 1 )
 align = 1
 valign = 1
+clip_text = true
 __meta__ = {
 "_edit_use_anchors_": false
 }
@@ -146,8 +147,10 @@ __meta__ = {
 
 [node name="EffectGrid" type="GridContainer" parent="HUD/Control"]
 margin_left = 150.0
-margin_right = 200.0
+margin_right = 204.0
 margin_bottom = 65.0
+grow_horizontal = 0
+grow_vertical = 0
 columns = 2
 __meta__ = {
 "_edit_use_anchors_": false
