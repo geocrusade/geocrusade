@@ -106,6 +106,7 @@ func set_cast(cast : Dictionary) -> void:
 	var cast_bar_label = ""
 	hud.set_cast_bar(cast.elapsed_time_seconds, cast.composite_ability.cast_duration_seconds)
 	hud.set_cast_bar_label(cast.composite_ability.name)
+	cast_ability_codes = cast.ability_codes
 	
 func cancel_cast() -> void:
 	hud.set_cast_bar(0.0, 1.0)

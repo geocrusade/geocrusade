@@ -2,12 +2,14 @@ local util = require("utility")
 
 local ability_codes = {
   FIRE = 1,
-  ONE_HAND_WEAPON = 2
+  ONE_HAND_WEAPON = 2,
+  LIFE = 3
 }
 
 local effect_codes = {
   BURN = 1,
-  BLEED = 2
+  BLEED = 2,
+  MEND = 3
 }
 
 local ability_defaults = {
@@ -32,12 +34,21 @@ local ability_defaults = {
 }
 
 local effect_defaults = {
+  name = "",
+  color = { r = 0, g = 0, b = 0 },
   duration_seconds = 0,
   health_per_second = 0,
-  max_stacks = 1
+  max_stacks = 1,
+  effects_removed = {}
 }
 
 local game_config = {
+
+    max_health = 100,
+    max_power = 100,
+
+    passive_power_per_second = 1,
+    passive_health_per_second = 1,
 
     character_line_of_sight_point = { x = 0, y = 2, z = 0 },
 
@@ -73,7 +84,7 @@ local game_config = {
       },
 
       [ability_codes.ONE_HAND_WEAPON] = {
-        name = "One Hand Weapon",
+        name = "1HW",
         primary = {
           cast_duration_seconds = 0.25,
           cast_while_moving = true,
@@ -91,6 +102,27 @@ local game_config = {
           on_hit_enemy = {
             effects = { effect_codes.BLEED },
             health_delta = -1
+          }
+        }
+      },
+
+      [ability_codes.LIFE] = {
+        name = "Life",
+        primary = {
+          cast_duration_seconds = 1,
+          max_target_distance = 40,
+          power_cost = 20,
+          on_hit_friendly = {
+            health_delta = 10
+          }
+        },
+        secondary = {
+          cast_duration_seconds = 0.5,
+          max_target_distance = 0,
+          power_cost = 10,
+          on_hit_friendly = {
+            effects = { effect_codes.MEND },
+            health_delta = 0
           }
         }
       }
@@ -113,6 +145,14 @@ local game_config = {
         duration_seconds = 5,
         health_per_second = -1,
         max_stacks = 4
+      },
+      [effect_codes.MEND] = {
+        name = "Mend",
+        color = { r = 0, g = 255 , b = 0},
+        duration_seconds = 5,
+        health_per_second = 1,
+        max_stacks = 4,
+        effects_removed = { effect_codes.BLEED }
       }
     }
 }

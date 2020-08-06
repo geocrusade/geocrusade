@@ -214,8 +214,8 @@ function match_handler.match_join(_, dispatcher, _, state, joining_users)
 
         state.names[user.user_id] = user.username
 
-        state.healths[user.user_id] = 100
-        state.powers[user.user_id] = 100
+        state.healths[user.user_id] = game_config.max_health
+        state.powers[user.user_id] = game_config.max_power
         state.effects[user.user_id] = {}
 
         state.casts[user.user_id] = nil
@@ -265,15 +265,33 @@ function match_handler.match_leave(_, _, _, state, leaving_users)
     return state
 end
 
+local apply_effect_removals = function(current_effects, new_effect_code)
+  local config = game_config.effect_config[new_effect_code]
+  for _, code_to_remove in ipairs(config.effects_removed) do
+    for current_code, current_effect in pairs(current_effects) do
+      if current_code == code_to_remove then
+        current_effect.stack_count = current_effect.stack_count - 1
+        if current_effect.stack_count >= 1 then
+          current_effects[current_code] = current_effect
+        else
+          current_effects[current_code] = nil
+        end
+      end
+    end
+  end
+
+  return current_effects
+end
+
 local add_new_effects = function(current, new_codes)
-  local result_effects = {}
-  for code, curr_eff in pairs(current) do
-    local result_effect = util.table_copy(curr_eff)
+  local result_effects = util.table_copy(current)
+  for code, result_effect in pairs(result_effects) do
     for _, new_code in ipairs(new_codes) do
       local config = game_config.effect_config[new_code]
       if code == new_code and result_effect.stack_count < config.max_stacks then
         result_effect.stack_count = result_effect.stack_count + 1
         result_effect.remaining_seconds = config.duration_seconds
+        result_effects = apply_effect_removals(result_effects, new_code)
       end
     end
     result_effects[code] = result_effect
@@ -291,6 +309,7 @@ local add_new_effects = function(current, new_codes)
         result_effect.stack_count = result_effect.stack_count + 1
       end
       result_effects[new_code] = result_effect
+      result_effects = apply_effect_removals(result_effects, new_code)
     end
   end
 
@@ -347,7 +366,7 @@ function match_handler.match_loop(_, dispatcher, tick, state, messages)
             }
             state.projectile_count = state.projectile_count + 1
           else
-            table.insert(hits_to_process, { target_id = cast.target_id, composite_ability = cast.composite_ability })
+            table.insert(hits_to_process, { from_id = id, target_id = cast.target_id, composite_ability = cast.composite_ability })
           end
         end
         state.casts[id] = nil
@@ -383,7 +402,7 @@ function match_handler.match_loop(_, dispatcher, tick, state, messages)
       if to_pos ~= nil then
         to_pos = util.vector_add(to_pos, game_config.character_line_of_sight_point)
         if util.get_vector_distance(to_pos, proj.position) < 1 then
-          table.insert(hits_to_process, { target_id = proj.to_id, composite_ability = proj.composite_ability })
+          table.insert(hits_to_process, { from_id = proj.from_id, target_id = proj.to_id, composite_ability = proj.composite_ability })
           state.projectiles[id] = nil
         else
           local diff = util.vector_subtract(to_pos, proj.position)
@@ -400,11 +419,13 @@ function match_handler.match_loop(_, dispatcher, tick, state, messages)
     for _, hit in ipairs(hits_to_process) do
       state.healths[hit.target_id] = state.healths[hit.target_id] + hit.composite_ability.on_hit.health_delta
       state.effects[hit.target_id] = add_new_effects(state.effects[hit.target_id], hit.composite_ability.on_hit.effects)
-      local to_team = state.users[hit.target_id].team
-      local from_team = state.users[hit.target_id].team
       local special_hit_key = "on_hit_friendly"
-      if to_team ~= from_team or to_team == nil then
-        special_hit_key = "on_hit_enemy"
+      if hit.target_id ~= hit.from_id then
+        local to_team = state.users[hit.target_id].team
+        local from_team = state.users[hit.from_id].team
+        if to_team ~= from_team or to_team == nil then
+          special_hit_key = "on_hit_enemy"
+        end
       end
       state.healths[hit.target_id] = state.healths[hit.target_id] + hit.composite_ability[special_hit_key].health_delta
       state.effects[hit.target_id] = add_new_effects(state.effects[hit.target_id], hit.composite_ability[special_hit_key].effects)
@@ -414,6 +435,15 @@ function match_handler.match_loop(_, dispatcher, tick, state, messages)
 
     for _, input in pairs(state.inputs) do
         input.jmp = 0
+    end
+
+    -- PASSIVES
+
+    if math.fmod(tick, TICK_RATE) == 0 then
+      for id, _ in pairs(state.users) do
+        state.healths[id] = math.min(game_config.max_health, state.healths[id] + game_config.passive_health_per_second)
+        state.powers[id] = math.min(game_config.max_power, state.powers[id] + game_config.passive_power_per_second)
+      end
     end
 
     return state

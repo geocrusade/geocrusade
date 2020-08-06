@@ -27,10 +27,13 @@ func _unhandled_input(event : InputEvent):
 		jump()
 	
 	if event.is_action_pressed("ability_1"):
-		_try_cast_ability(ServerConnection.game_config.ability_codes.FIRE )
+		_try_cast_ability(ServerConnection.game_config.ability_codes.FIRE)
 	
 	if event.is_action_pressed("ability_2"):
 		_try_cast_ability(ServerConnection.game_config.ability_codes.ONE_HAND_WEAPON)
+	
+	if event.is_action_pressed("ability_3"):
+		_try_cast_ability(ServerConnection.game_config.ability_codes.LIFE)
 			
 	
 	if event is InputEventMouseButton:
@@ -83,14 +86,14 @@ func _try_cast_ability(ability_code : int) -> void:
 		_show_alert("Target not in line of sight!")
 	elif not is_casting():
 		self.composite_ability = composite_ability
-		cast_ability_codes = [ ability_code ]
-		MatchController.send_start_cast(cast_ability_codes)
-	elif cast_ability_codes.size() < ServerConnection.game_config.max_composite_ability_size:
-		cast_ability_codes.append(ability_code)
+		self.cast_ability_codes = [ ability_code ]
+		MatchController.send_start_cast(self.cast_ability_codes)
+	elif self.cast_ability_codes.size() < ServerConnection.game_config.max_composite_ability_size:
+		self.cast_ability_codes.push_back(ability_code)
 		self.composite_ability = composite_ability
 		MatchController.send_cast_update([ ability_code  ])
 	else:
-		_show_alert("Can't cast more abilities!")	
+		_show_alert("Can't cast more abilities!")
 
 func _get_direction() -> Vector3:
 	var new_direction := Vector3.ZERO
@@ -140,7 +143,7 @@ func _target_in_range(max_distance : int) -> bool:
 	return target.global_transform.origin.distance_to(global_transform.origin) <= max_distance
 
 func _get_new_composite_ability(next_ability_code : int) -> Dictionary:
-	var codes = cast_ability_codes.duplicate()
+	var codes = self.cast_ability_codes.duplicate()
 	if codes.size() > 0:
 		codes.append(next_ability_code)
 		var composite_ability = ServerConnection.get_ability(codes[0]).primary.duplicate(true)
