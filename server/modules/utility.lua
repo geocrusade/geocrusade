@@ -37,6 +37,12 @@ utility["table_log"] = function(t)
   end
 end
 
+utility["table_insert_all"] = function(t1, t2)
+  for _, v in ipairs(t2) do
+      table.insert(t1, v)
+  end
+end
+
 utility["vector_magnitude"] = function(a)
   return math.sqrt(a.x^2 + a.y^2 + a.z^2)
 end
@@ -72,9 +78,9 @@ end
 
 utility["vector_rotate"] = function(v, deg)
   -- y axis rotation
-  return { x = (v.x * math.cos(deg)) + (v.z * math.sin(deg),
+  return { x = (v.x * math.cos(deg)) + (v.z * math.sin(deg)),
            y = v.y,
-           z = (-v.x * math.sin(deg) + (v.z * math.cos(deg))
+           z = (-v.x * math.sin(deg)) + (v.z * math.cos(deg))
          }
 end
 
@@ -102,58 +108,47 @@ utility["vector_add"] = function(a, b)
   }
 end
 
-local num_have_same_sign = function(a, b)
-  return a*b >= 0
+utility["vector_multiply"] = function(a, b)
+  return {
+    x = a.x * b.x,
+    y = a.y * b.y,
+    z = a.z * b.z
+  }
 end
 
-local get_tetra_volume = function(a, b, c, d)
-  local ba = utility.vector_subtract(b, a)
-	local ca = utility.vector_subtract(c, a)
-	local da = utility.vector_subtract(d, a)
-	return (1.0 / 6.0) * utility.vector_dot_product(utility.vector_cross_product(ba, ca), da)
+-- Posted by BrunoLevy https://stackoverflow.com/a/42752998
+-- Möller–Trumbore ray-triangle intersection algorithm
+
+local get_line_triangle_intersection = function(ray_origin, ray_dir, a, b, c)
+  local e1 = utility.vector_subtract(b, a)
+  local e2 = utility.vector_subtract(c, a)
+  local n = utility.vector_cross_product(e1, e2)
+  local det = -uility.vector_dot_product(ray_dir, n)
+  local invdet = 1.0 / det
+  local ao = utility.vector_subtract(ray_origin, a)
+  local dao = utility.vector_cross_product(ao, ray_dir)
+  local u = utility.vector_dot_product(e2, dao) * invdet
+  local v = -utility.vector_dot_product(e1, dao) * invdet
+  local t = utility.vector_dot_product(ao, n) * invdet
+  local exists = (det >= 0.000001 and t >= 0.0 and u >= 0.0 and v >= 0.0 and (u+v) <= 1.0)
+  local point = utility.vector_utility.vector_add(ray_origin, utility.vector_multiply(t, ray_dir))
+  return { exists, point };
 end
 
-local line_intersects_triangle = function(p1, p2, v1, v2, v3)
-  local s1 = get_tetra_volume(p1, v1, v2, v3)
-  local s2 = get_tetra_volume(p2, v1, v2, v3)
-
-  if num_have_same_sign(s1, s2) then
-    return false
-  end
-
-  local s3 = get_tetra_volume(p1, p2, v1, v2)
-  local s4 = get_tetra_volume(p1, p2, v2, v3)
-
-  if not num_have_same_sign(s3, s4) then
-    return false
-  end
-
-  local s5 = get_tetra_volume(p1, p2, v3, v1)
-
-  if not num_have_same_sign(s4, s5) then
-    return false
-  end
-
-  return true
-end
-
-utility["line_intersects_faces"] = function(p1, p2, face_vertices)
+utility["get_line_intersection"] = function(p1, p2, face_vertices)
+  local ray_origin = p1
+  local ray_dir = utility.vector_normalize(utility.vector_subtract(p2, p1))
   for i = 1, table.getn(face_vertices)-3, 3 do
     local v1 = face_vertices[i]
     local v2 = face_vertices[i+1]
     local v3 = face_vertices[i+2]
-    if line_intersects_triangle(p1, p2, v1, v2, v3) then
-      return true
+    local intersection = get_line_triangle_intersection(ray_origin, ray_dir, v1, v2, v3)
+    if intersection.exists then
+      return intersection
     end
   end
 
-  return false
-end
-
-utility["table_insert_all"] = function(t1, t2)
-  for _, v in ipairs(t2) do
-      table.insert(t1, v)
-  end
+  return { exists = false, point = p2 }
 end
 
 return utility
