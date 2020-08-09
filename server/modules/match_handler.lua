@@ -157,6 +157,7 @@ function match_handler.match_init(_, params)
       powers = {},
       effects = {},
       casts = {},
+      speeds = {},
       projectiles = {},
       projectile_count = 0
     }
@@ -219,6 +220,8 @@ function match_handler.match_join(_, dispatcher, _, state, joining_users)
         state.effects[user.user_id] = {}
 
         state.casts[user.user_id] = nil
+
+        state.speeds[user.user_id] = game_config.default_speed
     end
 
 
@@ -232,6 +235,7 @@ function match_handler.match_join(_, dispatcher, _, state, joining_users)
         pwr = state.powers,
         eff = state.effects,
         cst = state.casts,
+        spd = state.speeds,
         prj = state.projectiles,
     }
     local encoded = nk.json_encode(data)
@@ -254,6 +258,7 @@ function match_handler.match_leave(_, _, _, state, leaving_users)
         state.powers[id] = nil
         state.effects[id] = nil
         state.casts[id] = nil
+        state.speeds[id] = nil
 
         -- remove this user as a target of others
         for k, v in pairs(state.targets) do
@@ -337,6 +342,7 @@ function match_handler.match_loop(_, dispatcher, tick, state, messages)
         pwr = state.powers,
         eff = state.effects,
         cst = state.casts,
+        spd = state.speeds,
         prj = state.projectiles
     }
 
@@ -379,19 +385,32 @@ function match_handler.match_loop(_, dispatcher, tick, state, messages)
     -- EFFECTS PROCESSING
 
     for id, user_effects in pairs(state.effects) do
+      local next_speed = game_config.default_speed
       for code, effect in pairs(user_effects) do
-        if effect.start_tick ~= nil and math.fmod(tick - effect.start_tick, TICK_RATE) == 0 then
+        if effect.start_tick ~= nil then
           local config = game_config.effect_config[code]
-          state.healths[id] = state.healths[id] + (config.health_per_second * effect.stack_count)
-          if effect.remaining_seconds - 1 > 0 then
-            effect.remaining_seconds = effect.remaining_seconds - 1
+          if math.fmod(tick - effect.start_tick, TICK_RATE) == 0 then
+            -- tasks done in discrete 1 sec intervals
+            state.healths[id] = state.healths[id] + (config.health_per_second * effect.stack_count)
+            next_speed = next_speed + (next_speed * config.speed_inc_percent)
+            if effect.remaining_seconds - 1 > 0 then
+              effect.remaining_seconds = effect.remaining_seconds - 1
+            else
+              user_effects[code] = nil
+            end
           else
-            user_effects[code] = nil
+            -- tasks that are continuous (performed every tick)
+            if not util.is_zero_vector(config.forward_move_per_second) then
+              local pos_delta = util.vector_rotate(util.vector_scale(config.forward_move_per_second, delta_seconds), state.turn_angles[id])
+              state.positions[id] = util.vector_add(state.positions[id], pos_delta)
+            end
           end
         elseif effect.start_tick == nil then
           effect.start_tick = tick
         end
       end
+      
+      state.speeds[id] = next_speed
       state.effects[id] = user_effects
     end
 

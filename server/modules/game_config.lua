@@ -2,14 +2,17 @@ local util = require("utility")
 
 local ability_codes = {
   FIRE = 1,
-  ONE_HAND_WEAPON = 2,
-  LIFE = 3
+  MELEE = 2,
+  LIFE = 3,
+  MOBILITY = 4
 }
 
 local effect_codes = {
   BURN = 1,
   BLEED = 2,
-  MEND = 3
+  MEND = 3,
+  SPRINT = 4,
+  DASH = 5,
 }
 
 local ability_defaults = {
@@ -39,7 +42,9 @@ local effect_defaults = {
   duration_seconds = 0,
   health_per_second = 0,
   max_stacks = 1,
-  effects_removed = {}
+  effects_removed = {},
+  speed_inc_percent = 0,
+  forward_move_per_second = { x = 0, y = 0, z = 0 }
 }
 
 local game_config = {
@@ -49,6 +54,8 @@ local game_config = {
 
     passive_power_per_second = 1,
     passive_health_per_second = 1,
+
+    default_speed = 200,
 
     character_line_of_sight_point = { x = 0, y = 2, z = 0 },
 
@@ -83,8 +90,8 @@ local game_config = {
         }
       },
 
-      [ability_codes.ONE_HAND_WEAPON] = {
-        name = "1HW",
+      [ability_codes.MELEE] = {
+        name = "Melee",
         primary = {
           cast_duration_seconds = 0.25,
           cast_while_moving = true,
@@ -125,8 +132,30 @@ local game_config = {
             health_delta = 0
           }
         }
-      }
+      },
 
+      [ability_codes.MOBILITY] = {
+        name = "Mobility",
+        primary = {
+          cast_duration_seconds = 0.25,
+          cast_while_moving = true,
+          max_target_distance = 0,
+          power_cost = 30,
+          on_hit_friendly = {
+            effects = { effect_codes.SPRINT, effect_codes.DASH },
+            health_delta = 0
+          }
+        },
+        secondary = {
+          cast_duration_seconds = 0.1,
+          max_target_distance = 0,
+          power_cost = 10,
+          on_hit_friendly = {
+            effects = { effect_codes.SPRINT },
+            health_delta = 0
+          }
+        }
+      }
     },
 
     effect_codes = effect_codes,
@@ -153,7 +182,21 @@ local game_config = {
         health_per_second = 1,
         max_stacks = 4,
         effects_removed = { effect_codes.BLEED }
-      }
+      },
+      [effect_codes.SPRINT] = {
+        name = "Sprint",
+        color = { r = 0, g = 204, b = 204 },
+        duration_seconds = 3,
+        max_stacks = 4,
+        speed_inc_percent = 0.2
+      },
+      [effect_codes.DASH] = {
+        name = "Dash",
+        color = { r = 102, g = 178, b = 255 },
+        duration_seconds = 1,
+        max_stacks = 1,
+        forward_move_per_second = { x = 0, y = 0, z = -10 }
+      },
     }
 }
 

@@ -70,6 +70,14 @@ utility["vector_scale"] = function(v, scale)
   return { x = v.x * scale, y = v.y * scale, z = v.z * scale }
 end
 
+utility["vector_rotate"] = function(v, deg)
+  -- y axis rotation
+  return { x = (v.x * math.cos(deg)) + (v.z * math.sin(deg),
+           y = v.y,
+           z = (-v.x * math.sin(deg) + (v.z * math.cos(deg))
+         }
+end
+
 utility["vector_cross_product"] = function(a, b)
   return {
     x = a.y * b.z - a.z * b.y,
