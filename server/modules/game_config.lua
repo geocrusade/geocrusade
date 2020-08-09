@@ -44,7 +44,7 @@ local effect_defaults = {
   max_stacks = 1,
   effects_removed = {},
   speed_inc_percent = 0,
-  forward_move_per_second = { x = 0, y = 0, z = 0 }
+  directed_move = { x = 0, y = 0, z = 0 }
 }
 
 local game_config = {
@@ -195,7 +195,7 @@ local game_config = {
         color = { r = 102, g = 178, b = 255 },
         duration_seconds = 1,
         max_stacks = 1,
-        forward_move_per_second = { x = 0, y = 0, z = -10 }
+        directed_move = { x = 0, y = 0, z = -10 }
       },
     }
 }

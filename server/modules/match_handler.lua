@@ -23,18 +23,12 @@ local OpCodes = {
     update_cast = 9
 }
 
-local in_line_of_sight = function(pos_a, pos_b)
-  pos_a = util.vector_add(pos_a, game_config.character_line_of_sight_point)
-  pos_b = util.vector_add(pos_b, game_config.character_line_of_sight_point)
-  return not util.line_intersects_faces(pos_a, pos_b, arena_vertices)
-end
-
 local commands = {}
 
 commands[OpCodes.update_transform] = function(data, state)
     local id = data.id
     local position = data.pos
-    if state.positions[id] ~= nil then
+    if state.positions[id] ~= nil and state.position_interpolations[id] == nil then
         state.positions[id] = position
     end
     if state.turn_angles[id] ~= nil then
@@ -87,6 +81,13 @@ local get_composite_ability = function(ability_codes)
   end
 
   return composite_ability
+end
+
+local in_line_of_sight = function(pos_a, pos_b)
+  pos_a = util.vector_add(pos_a, game_config.character_line_of_sight_point)
+  pos_b = util.vector_add(pos_b, game_config.character_line_of_sight_point)
+  local intersection = util.get_line_intersection(pos_a, pos_b, arena_vertices)
+  return not intersection.exists
 end
 
 local can_cast = function(composite_ability, user_id, target_id, state)
@@ -158,6 +159,7 @@ function match_handler.match_init(_, params)
       effects = {},
       casts = {},
       speeds = {},
+      position_interpolations = {},
       projectiles = {},
       projectile_count = 0
     }
@@ -259,6 +261,7 @@ function match_handler.match_leave(_, _, _, state, leaving_users)
         state.effects[id] = nil
         state.casts[id] = nil
         state.speeds[id] = nil
+        state.position_interpolations[id] = nil
 
         -- remove this user as a target of others
         for k, v in pairs(state.targets) do
@@ -387,29 +390,32 @@ function match_handler.match_loop(_, dispatcher, tick, state, messages)
     for id, user_effects in pairs(state.effects) do
       local next_speed = game_config.default_speed
       for code, effect in pairs(user_effects) do
+        local config = game_config.effect_config[code]
         if effect.start_tick ~= nil then
-          local config = game_config.effect_config[code]
           if math.fmod(tick - effect.start_tick, TICK_RATE) == 0 then
             -- tasks done in discrete 1 sec intervals
             state.healths[id] = state.healths[id] + (config.health_per_second * effect.stack_count)
-            next_speed = next_speed + (next_speed * config.speed_inc_percent)
+            next_speed = next_speed + (next_speed * (config.speed_inc_percent * effect.stack_count))
             if effect.remaining_seconds - 1 > 0 then
               effect.remaining_seconds = effect.remaining_seconds - 1
             else
               user_effects[code] = nil
             end
-          else
-            -- tasks that are continuous (performed every tick)
-            if not util.is_zero_vector(config.forward_move_per_second) then
-              local pos_delta = util.vector_rotate(util.vector_scale(config.forward_move_per_second, delta_seconds), state.turn_angles[id])
-              state.positions[id] = util.vector_add(state.positions[id], pos_delta)
-            end
           end
         elseif effect.start_tick == nil then
           effect.start_tick = tick
+          if not util.is_zero_vector(config.directed_move) then
+            local pos_delta = util.vector_rotate(utility.vector_scale(config.directed_move, effect.stack_count), state.turn_angles[id])
+            local start_pos = state.positions[id]
+            local end_pos = util.vector_add(start_pos, pos_delta)
+            local intersection = util.get_line_intersection(start_pos, end_pos, arena_vertices)
+            end_pos = intersection.point
+            local delta_per_tick = utility.vector_scale(pos_delta, delta_seconds  / config.duration_seconds)
+            state.position_interpolations[id] = { end_pos, delta_per_tick }
+          end
         end
       end
-      
+
       state.speeds[id] = next_speed
       state.effects[id] = user_effects
     end
@@ -454,6 +460,22 @@ function match_handler.match_loop(_, dispatcher, tick, state, messages)
 
     for _, input in pairs(state.inputs) do
         input.jmp = 0
+    end
+
+    -- POSITION INTERPOLATION PROCESSING
+
+    for id, interp in pairs(state.position_interpolations) do
+      local current_pos = state.positions[id]
+      if current_pos ~= nil then
+        if util.get_vector_distance(current, interp.end_pos) < util.vector_magnitude(interp.delta_per_tick) then
+          state.positions[id] = interp.end_pos
+          state.position_interpolations[id] = nil
+        else
+          state.positions[id] = util.vector_add(current_pos, interp.delta_per_tick)
+        end
+      else
+        state.position_interpolations[id] = nil
+      end
     end
 
     -- PASSIVES
