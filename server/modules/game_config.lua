@@ -11,8 +11,7 @@ local effect_codes = {
   BURN = 1,
   BLEED = 2,
   MEND = 3,
-  SPRINT = 4,
-  DASH = 5,
+  SPRINT = 4
 }
 
 local ability_defaults = {
@@ -24,15 +23,18 @@ local ability_defaults = {
   meters_per_second = 0,
   on_hit = {
     effects = {},
-    health_delta = 0
+    health_delta = 0,
+    directed_move = { x = 0, y = 0, z = 0 }
   },
   on_hit_enemy = {
     effects = {},
-    health_delta = 0
+    health_delta = 0,
+    directed_move = { x = 0, y = 0, z = 0 }
   },
   on_hit_friendly = {
     effects = {},
-    health_delta = 0
+    health_delta = 0,
+    directed_move = { x = 0, y = 0, z = 0 }
   }
 }
 
@@ -44,7 +46,6 @@ local effect_defaults = {
   max_stacks = 1,
   effects_removed = {},
   speed_inc_percent = 0,
-  directed_move = { x = 0, y = 0, z = 0 }
 }
 
 local game_config = {
@@ -55,9 +56,11 @@ local game_config = {
     passive_power_per_second = 1,
     passive_health_per_second = 1,
 
-    default_speed = 200,
+    default_speed = 1000,
 
     character_line_of_sight_point = { x = 0, y = 2, z = 0 },
+
+    character_dimensions = { x = 2, y = 4, z = 2 },
 
     max_composite_ability_size = 4,
 
@@ -142,8 +145,9 @@ local game_config = {
           max_target_distance = 0,
           power_cost = 30,
           on_hit_friendly = {
-            effects = { effect_codes.SPRINT, effect_codes.DASH },
-            health_delta = 0
+            effects = { effect_codes.SPRINT },
+            health_delta = 0,
+            directed_move = { x = 0, y = 0, z = -15 }
           }
         },
         secondary = {
@@ -152,7 +156,8 @@ local game_config = {
           power_cost = 10,
           on_hit_friendly = {
             effects = { effect_codes.SPRINT },
-            health_delta = 0
+            health_delta = 0,
+            directed_move = { x = 0, y = 0, z = 0 }
           }
         }
       }
@@ -189,14 +194,7 @@ local game_config = {
         duration_seconds = 3,
         max_stacks = 4,
         speed_inc_percent = 0.2
-      },
-      [effect_codes.DASH] = {
-        name = "Dash",
-        color = { r = 102, g = 178, b = 255 },
-        duration_seconds = 1,
-        max_stacks = 1,
-        directed_move = { x = 0, y = 0, z = -10 }
-      },
+      }
     }
 }
 

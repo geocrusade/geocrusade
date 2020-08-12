@@ -30,11 +30,14 @@ func _unhandled_input(event : InputEvent):
 		_try_cast_ability(ServerConnection.game_config.ability_codes.FIRE)
 	
 	if event.is_action_pressed("ability_2"):
-		_try_cast_ability(ServerConnection.game_config.ability_codes.ONE_HAND_WEAPON)
+		_try_cast_ability(ServerConnection.game_config.ability_codes.MELEE)
 	
 	if event.is_action_pressed("ability_3"):
 		_try_cast_ability(ServerConnection.game_config.ability_codes.LIFE)
-			
+	
+	if event.is_action_pressed("ability_4"):
+		_try_cast_ability(ServerConnection.game_config.ability_codes.MOBILITY)
+	
 	
 	if event is InputEventMouseButton:
 		if event.button_index == BUTTON_RIGHT:
@@ -47,17 +50,18 @@ func _physics_process(_delta: float) -> void:
 	if direction != Vector3.ZERO and is_casting() and not self.composite_ability.get("cast_while_moving", false):
 		.cancel_cast()
 		MatchController.send_cancel_cast()
-		
+	
 	if _right_button_pressed:
-		.turn_to(camera.get_rotation_degrees().y)
+		.global_rotate(Vector3.UP, global_transform.basis.z.angle_to(camera.get_z_basis()))
 
-func setup(username: String, position: Vector3, turn_angle: float, health : int, power : int, effects : Dictionary) -> void:
+func setup(username: String, position: Vector3, rotation: Vector3, health : int, power : int, effects : Dictionary, speed : float) -> void:
 	self.username = username
 	self.health = health
 	self.power = power
 	self.effects = effects
+	self.speed = speed
 	set_global_position(position)
-	turn_to(turn_angle)
+	set_rotation(rotation)
 	spawn()
 	show()
 
@@ -102,11 +106,12 @@ func _get_direction() -> Vector3:
 		new_direction = Vector3(cam_dir.x, 0, cam_dir.z)
 	else:
 		new_direction = Vector3(
-			Input.get_action_strength("move_left") - Input.get_action_strength("move_right"),
+			Input.get_action_strength("move_right") - Input.get_action_strength("move_left"),
 			0,
-			Input.get_action_strength("move_forward") - Input.get_action_strength("move_backward")
+			Input.get_action_strength("move_backward") - Input.get_action_strength("move_forward")
 		)
 		new_direction = new_direction.rotated(Vector3.UP, deg2rad(.get_turn_angle()))
+
 	
 	if new_direction != last_direction:
 		MatchController.send_input_update(new_direction)
@@ -114,7 +119,7 @@ func _get_direction() -> Vector3:
 	return new_direction
 
 func _on_timer_timeout() -> void:
-	MatchController.send_transform_update(global_transform.origin, .get_turn_angle())
+	MatchController.send_transform_update(global_transform.origin, global_transform.basis.z)
 
 func _set_target(value : Character) -> void:
 	if value != null:

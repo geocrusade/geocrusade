@@ -16,7 +16,7 @@ onready var _h : Spatial = $H
 onready var _v : Spatial = $H/V
 onready var _cam : Camera = $H/V/ClippedCamera
 onready var _parent : Spatial = get_parent()
-onready var _prev_parent_y : float = _parent.rotation_degrees.y
+onready var _prev_parent_z_basis : Vector3 = _parent.global_transform.basis.z.rotated(Vector3.UP, PI)
 
 var _left_pressed = false
 var _right_pressed = false
@@ -30,6 +30,9 @@ func get_direction() -> Vector3:
 func get_rotation_degrees() -> Vector3:
 	return Vector3(_v.rotation_degrees.x, _h.rotation_degrees.y, _h.rotation_degrees.z)
 
+func get_z_basis() -> Vector3:
+	return _h.global_transform.basis.z
+
 func _unhandled_input(event):
 	if event is InputEventMouseButton:
 		if event.button_index == BUTTON_RIGHT:
@@ -41,15 +44,15 @@ func _unhandled_input(event):
 		v_rot -= event.relative.y * v_sens
 
 func _physics_process(delta):
-	
-	var current_parent_y = _parent.rotation_degrees.y
-	
-	rotation_degrees.y -= current_parent_y - _prev_parent_y
-	
+
+	var parent_z_basis = _parent.global_transform.basis.z
+	.global_rotate(Vector3.UP, -_prev_parent_z_basis.angle_to(parent_z_basis))
+	_prev_parent_z_basis = parent_z_basis
+		
 	v_rot = clamp(v_rot, v_min, v_max)
 	
 	_h.rotation_degrees.y = lerp(_h.rotation_degrees.y, h_rot, delta * h_accel)
 	_v.rotation_degrees.x = lerp(_v.rotation_degrees.x, v_rot, delta * v_accel)
 	
-	_prev_parent_y = current_parent_y
+
 		

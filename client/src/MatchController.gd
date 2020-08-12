@@ -18,8 +18,8 @@ signal arena_match_join_failed
 
 
 signal users_changed
-signal state_updated(positions, turn_angles, inputs, targets, healths, powers, casts, projectiles, effects)
-signal initial_state_received(positions, turn_angles, inputs, names, targets, healths, powers, casts, projectiles, effects)
+signal state_updated(positions, rotations, inputs, targets, healths, powers, casts, projectiles, effects, speeds)
+signal initial_state_received(positions, rotations, inputs, names, targets, healths, powers, casts, projectiles, effects, speeds)
 signal character_spawned(id)
 
 
@@ -116,8 +116,8 @@ func join_arena_match() -> void:
 	emit_signal("users_changed")
 	emit_signal("arena_match_joined")
 
-func send_transform_update(position: Vector3, turn_angle: float) -> void:
-	var payload := {id = ServerConnection.get_user_id(), pos = {x = position.x, y = position.y, z = position.z }, trn = turn_angle}
+func send_transform_update(position: Vector3, rotation: Vector3) -> void:
+	var payload := {id = ServerConnection.get_user_id(), pos = {x = position.x, y = position.y, z = position.z }, rot = {x = rotation.x, y = rotation.y, z = rotation.z }}
 	_socket.send_match_state_async(_match_id, OpCodes.UPDATE_TRANSFORM, JSON.print(payload))
 		
 func send_input_update(input: Vector3) -> void:
@@ -201,7 +201,7 @@ func _on_socket_received_match_state(match_state: NakamaRTAPI.MatchData) -> void
 			var decoded: Dictionary = JSON.parse(raw).result
 
 			var positions: Dictionary = decoded.pos
-			var turn_angles: Dictionary = decoded.trn
+			var rotations: Dictionary = decoded.rot
 			var inputs: Dictionary = decoded.inp
 			var targets: Dictionary = decoded.trg
 			var healths: Dictionary = decoded.hlt
@@ -209,14 +209,15 @@ func _on_socket_received_match_state(match_state: NakamaRTAPI.MatchData) -> void
 			var casts: Dictionary = decoded.cst
 			var projectiles: Dictionary = decoded.prj
 			var effects: Dictionary = _process_effects(decoded.eff)
-
-			emit_signal("state_updated", positions, turn_angles, inputs, targets, healths, powers, casts, projectiles, effects)
+			var speeds: Dictionary = decoded.spd
+			
+			emit_signal("state_updated", positions, rotations, inputs, targets, healths, powers, casts, projectiles, effects, speeds)
 			
 		OpCodes.INITIAL_STATE:
 			var decoded: Dictionary = JSON.parse(raw).result
 
 			var positions: Dictionary = decoded.pos
-			var turn_angles: Dictionary = decoded.trn
+			var rotations: Dictionary = decoded.rot
 			var inputs: Dictionary = decoded.inp
 			var names: Dictionary = decoded.nms
 			var targets: Dictionary = decoded.trg
@@ -225,11 +226,9 @@ func _on_socket_received_match_state(match_state: NakamaRTAPI.MatchData) -> void
 			var casts: Dictionary = decoded.cst
 			var projectiles: Dictionary = decoded.prj
 			var effects : Dictionary = _process_effects(decoded.eff)
+			var speeds : Dictionary = decoded.spd
 			
-			
-			
-				
-			emit_signal("initial_state_received", positions, turn_angles, inputs, names, targets, healths, powers, casts, projectiles, effects)
+			emit_signal("initial_state_received", positions, rotations, inputs, names, targets, healths, powers, casts, projectiles, effects, speeds)
 
 func _process_effects(effects : Dictionary) -> Dictionary:
 	for id in effects:

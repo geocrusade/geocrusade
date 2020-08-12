@@ -1,6 +1,10 @@
 local nk = require("nakama")
 local utility = {}
 
+utility["get_zero_vector"] = function()
+  return { x = 0, y = 0, z = 0 }
+end
+
 utility["merge_table_into"] = function(a, b)
   for key, a_val in pairs(a) do
     local b_val = b[key]
@@ -117,7 +121,7 @@ utility["vector_multiply"] = function(a, b)
 end
 
 -- Suggested by BrunoLevy https://stackoverflow.com/a/42752998
--- Source: Möller–Trumbore ray-triangle intersection algorithm on Wikipedia 
+-- Source: Möller–Trumbore ray-triangle intersection algorithm on Wikipedia
 
 local get_line_triangle_intersection = function(ray_origin, ray_vector, v1, v2, v3)
   local ray_end = utility.vector_add(ray_origin, ray_vector)
@@ -127,7 +131,7 @@ local get_line_triangle_intersection = function(ray_origin, ray_vector, v1, v2, 
   local h = utility.vector_cross_product(ray_vector, edge2)
   local a = utility.vector_dot_product(edge1, h)
   if a > -EPSILON and a < EPSILON then
-    return { exists = false, point = ray_origin }  -- ray is parallel to triangle
+    return { exists = false, point = ray_end }  -- ray is parallel to triangle
   end
 
   local f = 1.0 / a
@@ -165,6 +169,26 @@ utility["get_line_intersection"] = function(p1, p2, face_vertices)
   end
 
   return { exists = false, point = p2 }
+end
+
+utility["get_closest_line_intersection"] = function(p1, p2, face_vertices)
+  local ray_origin = p1
+  local ray_dir = utility.vector_subtract(p2, p1)
+  local closest_intersection = { exists = false, point = p2 }
+  local closest_intersection_dist = utility.get_vector_distance(p1, p2)
+  for i = 1, table.getn(face_vertices)-3, 3 do
+    local v1 = face_vertices[i]
+    local v2 = face_vertices[i+1]
+    local v3 = face_vertices[i+2]
+    local intersection = get_line_triangle_intersection(ray_origin, ray_dir, v1, v2, v3)
+    local intersection_dist = utility.get_vector_distance(intersection.point, p1)
+    if intersection.exists and intersection_dist < closest_intersection_dist then
+      closest_intersection_dist = intersection_dist
+      closest_intersection = intersection
+    end
+  end
+
+  return closest_intersection
 end
 
 return utility

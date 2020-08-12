@@ -21,7 +21,7 @@ func _ready() -> void:
 	
 func _on_initial_state_received(
 	positions: Dictionary, 
-	turn_angles: Dictionary, 
+	rotations: Dictionary, 
 	inputs: Dictionary, 
 	names: Dictionary,
 	_targets: Dictionary,
@@ -29,13 +29,16 @@ func _on_initial_state_received(
 	powers: Dictionary,
 	casts: Dictionary,
 	projectiles: Dictionary,
-	effects: Dictionary
+	effects: Dictionary,
+	speeds: Dictionary
 ) -> void:
 	var user_id: String = ServerConnection.get_user_id()
 	var username: String = names.get(user_id)
 	var p = positions[user_id]
+	var r = rotations[user_id]
 	var player_position := Vector3(p.x, p.y, p.z)
-	player.setup(username, player_position, turn_angles[user_id], healths[user_id], powers[user_id], effects[user_id])
+	var player_rotation := Vector3(r.x, r.y, r.z)
+	player.setup(username, player_position, player_rotation, healths[user_id], powers[user_id], effects[user_id], speeds[user_id])
 	player.connect("input_event", self, "_on_character_input_event", [ ServerConnection.get_user_id() ])
 	
 	var users = MatchController.users
@@ -45,27 +48,31 @@ func _on_initial_state_received(
 			var character_position := Vector3(user_p.x, user_p.y, user_p.z)
 			var user_dir = inputs[id].dir
 			var character_direction := Vector3(user_dir.x, user_dir.y, user_dir.z)
+			var user_rot = rotations[id]
+			var character_rotation := Vector3(user_rot.x, user_rot.y, user_rot.z)
 			if not id in characters:
 				create_character(
 					id, 
 					names[id], 
 					character_position, 
-					turn_angles[id],
+					character_rotation,
 					character_direction,
 					healths[id],
 					powers[id],
 					casts,
-					effects[id]
+					effects[id],
+					speeds[id]
 				)
 			else:
 				var character = characters[id]
 				character.next_position = character_position
-				character.next_turn_angle = turn_angles[id]
+				character.next_rotation = character_rotation
 				character.next_input = character_direction
 				character.next_jump = inputs[id].jmp == 1
 				character.health = healths[id]
 				character.power = powers[id]
 				character.effects = effects[id]
+				character.speed = speeds[id]
 				character.update_state()
 				character.spawn()
 				if id in casts:
@@ -77,12 +84,13 @@ func create_character(
 	id: String,
 	username: String,
 	position: Vector3,
-	turn_angle: float,
+	rotation: Vector3,
 	direction: Vector3,
 	health: int,
 	power: int,
 	casts: Dictionary,
-	effects: Array
+	effects: Array,
+	speed: float
 ) -> void:
 	var character := CharacterScene.instance()
 	#warning-ignore: return_value_discarded
@@ -92,10 +100,11 @@ func create_character(
 	character.health = health
 	character.power = power
 	character.effects = effects
+	character.speed = speed
 	if id in casts:
 		character.set_cast(casts[id])
 	character.set_global_position(position)
-	character.turn_to(turn_angle)
+	character.set_rotation(rotation)
 	character.spawn()
 	character.connect("input_event", self, "_on_character_input_event", [ id ])
 	characters[id] = character
@@ -105,7 +114,7 @@ func _on_users_changed() -> void:
 
 	for key in users:
 		if not key in characters:
-			create_character(key, users[key].username, Vector3.ZERO, 0.0, Vector3.ZERO, 100, 100, {}, [])
+			create_character(key, users[key].username, Vector3.ZERO, Vector3.FORWARD, Vector3.ZERO, 100, 100, {}, [], ServerConnection.game_config.default_speed)
 
 	var to_delete := []
 	for key in characters.keys():
@@ -123,19 +132,27 @@ func _on_users_changed() -> void:
 		
 func _on_state_updated(
 	positions: Dictionary, 
-	turn_angles: Dictionary, 
+	rotations: Dictionary, 
 	inputs: Dictionary, 
 	targets: Dictionary, 
 	healths: Dictionary, 
 	powers: Dictionary,
 	casts: Dictionary,
 	projectiles: Dictionary,
-	effects: Dictionary
+	effects: Dictionary,
+	speeds: Dictionary
 ) -> void:
 	var player_id = ServerConnection.get_user_id()
 	player.health = healths[player_id]
 	player.power = powers[player_id]
 	player.effects = effects[player_id]
+	player.speed = speeds[player_id]
+	
+	if positions[player_id].has("override"):
+		var p : Dictionary = positions[player_id]
+		player.next_position = Vector3(p.x, p.y, p.z)
+		player.next_rotation = player.global_transform.basis.z
+		player.update_state()
 	
 	if player_id in casts:
 		player.set_cast(casts[player_id])
@@ -147,9 +164,9 @@ func _on_state_updated(
 		if key in positions:
 			var p : Dictionary = positions[key]
 			character.next_position = Vector3(p.x, p.y, p.z)
-		if key in turn_angles:
-			var t : float = turn_angles[key]
-			character.next_turn_angle = t
+		if key in rotations:
+			var r : Dictionary = rotations[key]
+			character.next_rotation = Vector3(r.x, r.y, r.z)
 		if key in inputs:
 			var dir = inputs[key].dir
 			character.next_input = Vector3(dir.x, dir.y, dir.z)
@@ -169,6 +186,8 @@ func _on_state_updated(
 			character.effects = effects[key]
 		if key in casts:
 			character.set_cast(casts[key])
+		if key in speeds:
+			character.speed = speeds[key]
 		else:
 			character.cancel_cast()
 				

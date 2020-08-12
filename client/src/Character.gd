@@ -12,7 +12,6 @@ const SCALE_STRETCHED := SCALE_BASE * Vector3(0.8, 1.35, 1)
 const ANIM_IN_DURATION := 0.1
 const ANIM_OUT_DURATION := 0.25
 
-const MAX_SPEED := 200.0
 const JUMP_SPEED := 35.0
 const GRAVITY := 100.0
 const ACCELERATION := 1000.0
@@ -30,12 +29,14 @@ var target : Character = null setget _set_target
 
 var effects : Dictionary = {} setget _set_effects
 
+var speed : float = 1000
+
 var last_position := Vector3.ZERO
 var last_input := Vector3.ZERO
 var next_position := Vector3.ZERO
 var next_input := Vector3.ZERO
 var next_jump := false
-var next_turn_angle := 0.0
+var next_rotation := Vector3.FORWARD
 
 var cast_ability_codes : Array = []
 
@@ -65,11 +66,9 @@ func set_hidden() -> void:
 	hud.hide()
 
 func move(delta: float) -> void:
-	var accel = direction.normalized() * ACCELERATION * delta
-	velocity.x = accel.x
-	velocity.z = accel.z
-	velocity.x = clamp(velocity.x, -MAX_SPEED, MAX_SPEED)
-	velocity.z = clamp(velocity.z, -MAX_SPEED, MAX_SPEED)
+	var vel = direction.normalized() * speed * delta
+	velocity.x = vel.x
+	velocity.z = vel.z
 	if direction.x == 0:
 		velocity.x = lerp(velocity.x, 0, DRAG_AMOUNT)
 	if direction.z == 0:
@@ -85,8 +84,8 @@ func jump() -> void:
 func get_turn_angle() -> float:
 	return fmod(rotation_degrees.y, 360.0)
 	
-func turn_to(y_degree: float) -> void:
-	rotation_degrees.y = y_degree
+func set_rotation(z_basis: Vector3) -> void:
+	.global_rotate(Vector3.UP, global_transform.basis.z.angle_to(z_basis))
 
 func start_cast(ability_codes : Array, start_time : float = 0) -> void:
 	var cast_time_seconds : float = 0
@@ -196,8 +195,8 @@ func update_state() -> void:
 		jump()
 		next_jump = false
 
-	if global_transform.origin.distance_squared_to(last_position) > 10:
-		tween.interpolate_method(self, "set_global_position", global_transform.origin, last_position, 0.2)
+	if global_transform.origin.distance_squared_to(next_position) > 5:
+		tween.interpolate_method(self, "set_global_position", global_transform.origin, next_position, 0.2)
 		tween.start()
 	else:
 		var anticipated := last_position + velocity * 0.2
@@ -207,7 +206,7 @@ func update_state() -> void:
 	direction.x = last_input.x
 	direction.z = last_input.z
 	
-	turn_to(next_turn_angle)
+	self.set_rotation(next_rotation)
 
 	last_input = next_input
 	last_position = next_position

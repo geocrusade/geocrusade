@@ -40,7 +40,7 @@ func get_ability(code : int) -> Dictionary:
 	return game_config.ability_config[code - 1]
 
 func get_effect(code : int) -> Dictionary:
-	# server uses lua runtime where indices start at 1
+
 	return game_config.effect_config[code]
 	
 func create_socket() -> NakamaSocket:

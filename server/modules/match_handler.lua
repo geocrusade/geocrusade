@@ -6,9 +6,12 @@ local arena_vertices = require("arena_vertices")
 
 local match_handler = {}
 
-local WORLD_SPAWN_POSITION = { x = 0, y = 0, z = 0 }
+local WORLD_SPAWN_POSITION = { x = 150, y = 6, z = -45 }
+local WORLD_SPAWN_ROTATION = { x = 0, y = 0, z = -1 }
 local TEAM1_SPAWN_POSITION = { x = 150, y = 6, z = -45 }
 local TEAM2_SPAWN_POSITION = { x = 150, y = 6, z = 45 }
+local TEAM1_SPAWN_ROTATION = { x = 0, y = 0, z = 1 }
+local TEAM2_SPAWN_ROTATION = { x = 0, y = 0, z = -1 }
 local TICK_RATE = 20
 
 local OpCodes = {
@@ -27,12 +30,11 @@ local commands = {}
 
 commands[OpCodes.update_transform] = function(data, state)
     local id = data.id
-    local position = data.pos
-    if state.positions[id] ~= nil and state.position_interpolations[id] == nil then
-        state.positions[id] = position
+    if state.positions[id] ~= nil then
+        state.positions[id] = data.pos
     end
-    if state.turn_angles[id] ~= nil then
-        state.turn_angles[id] = data.trn
+    if state.rotations[id] ~= nil then
+        state.rotations[id] = data.rot
     end
 end
 
@@ -75,6 +77,10 @@ local get_composite_ability = function(ability_codes)
     composite_ability.on_hit_enemy.health_delta = composite_ability.on_hit_enemy.health_delta + secondary_ability.on_hit_enemy.health_delta
     composite_ability.on_hit_friendly.health_delta = composite_ability.on_hit_friendly.health_delta + secondary_ability.on_hit_friendly.health_delta
 
+    composite_ability.on_hit.directed_move = util.vector_add(composite_ability.on_hit.directed_move, secondary_ability.on_hit.directed_move)
+    composite_ability.on_hit_enemy.directed_move = util.vector_add(composite_ability.on_hit_enemy.directed_move, secondary_ability.on_hit_enemy.directed_move)
+    composite_ability.on_hit_friendly.directed_move = util.vector_add(composite_ability.on_hit_friendly.directed_move, secondary_ability.on_hit_friendly.directed_move)
+
     util.table_insert_all(composite_ability.on_hit.effects, secondary_ability.on_hit.effects)
     util.table_insert_all(composite_ability.on_hit_enemy.effects, secondary_ability.on_hit_enemy.effects)
     util.table_insert_all(composite_ability.on_hit_friendly.effects, secondary_ability.on_hit_friendly.effects)
@@ -102,7 +108,7 @@ local can_cast = function(composite_ability, user_id, target_id, state)
   local pos = state.positions[user_id]
   local target_pos = state.positions[target_id]
   local distance_to_target = util.get_vector_distance(pos, target_pos)
-  return distance_to_target <= composite_ability.max_target_distance and in_line_of_sight(pos, target_pos)
+  return distance_to_target <= composite_ability.max_target_distance and (user_id == target_id or in_line_of_sight(pos, target_pos))
 end
 
 commands[OpCodes.start_cast] = function(data, state)
@@ -150,7 +156,7 @@ function match_handler.match_init(_, params)
       users = {},
       inputs = {},
       positions = {},
-      turn_angles = {},
+      rotations = {},
       jumps = {},
       names = {},
       targets = {},
@@ -159,7 +165,6 @@ function match_handler.match_init(_, params)
       effects = {},
       casts = {},
       speeds = {},
-      position_interpolations = {},
       projectiles = {},
       projectile_count = 0
     }
@@ -197,13 +202,13 @@ function match_handler.match_join(_, dispatcher, _, state, joining_users)
 
         if state.is_world then
           state.positions[user.user_id] = WORLD_SPAWN_POSITION
-          state.turn_angles[user.user_id] = 0
+          state.rotations[user.user_id] = WORLD_SPAWN_ROTATION
         elseif state.is_arena and user.team == 1 then
           state.positions[user.user_id] = TEAM1_SPAWN_POSITION
-          state.turn_angles[user.user_id] = 0
+          state.rotations[user.user_id] = TEAM1_SPAWN_ROTATION
         elseif state.is_arena then
           state.positions[user.user_id] = TEAM2_SPAWN_POSITION
-          state.turn_angles[user.user_id] = 180
+          state.rotations[user.user_id] = TEAM2_SPAWN_ROTATION
         end
 
         state.inputs[user.user_id] = {
@@ -229,7 +234,7 @@ function match_handler.match_join(_, dispatcher, _, state, joining_users)
 
     local data = {
         pos = state.positions,
-        trn = state.turn_angles,
+        rot = state.rotations,
         inp = state.inputs,
         nms = state.names,
         trg = state.targets,
@@ -240,6 +245,7 @@ function match_handler.match_join(_, dispatcher, _, state, joining_users)
         spd = state.speeds,
         prj = state.projectiles,
     }
+
     local encoded = nk.json_encode(data)
     dispatcher.broadcast_message(OpCodes.initial_state, encoded, joining_users)
 
@@ -251,7 +257,7 @@ function match_handler.match_leave(_, _, _, state, leaving_users)
         local id = user.user_id
         state.users[id] = nil
         state.positions[id] = nil
-        state.turn_angles[id] = nil
+        state.rotations[id] = nil
         state.inputs[id] = nil
         state.jumps[id] = nil
         state.names[id] = nil
@@ -261,7 +267,6 @@ function match_handler.match_leave(_, _, _, state, leaving_users)
         state.effects[id] = nil
         state.casts[id] = nil
         state.speeds[id] = nil
-        state.position_interpolations[id] = nil
 
         -- remove this user as a target of others
         for k, v in pairs(state.targets) do
@@ -325,6 +330,12 @@ local add_new_effects = function(current, new_codes)
 end
 
 function match_handler.match_loop(_, dispatcher, tick, state, messages)
+
+    -- RESET JUMPS BEFORE NEXT STATE
+    for _, input in pairs(state.inputs) do
+        input.jmp = 0
+    end
+
     for _, message in ipairs(messages) do
         local op_code = message.op_code
 
@@ -335,23 +346,6 @@ function match_handler.match_loop(_, dispatcher, tick, state, messages)
             commands[op_code](decoded, state)
         end
     end
-
-    local update = {
-        pos = state.positions,
-        trn = state.turn_angles,
-        inp = state.inputs,
-        trg = state.targets,
-        hlt = state.healths,
-        pwr = state.powers,
-        eff = state.effects,
-        cst = state.casts,
-        spd = state.speeds,
-        prj = state.projectiles
-    }
-
-    local encoded_update = nk.json_encode(update)
-
-    dispatcher.broadcast_message(OpCodes.update_state, encoded_update)
 
     local delta_seconds = 1.0 / TICK_RATE
 
@@ -388,34 +382,26 @@ function match_handler.match_loop(_, dispatcher, tick, state, messages)
     -- EFFECTS PROCESSING
 
     for id, user_effects in pairs(state.effects) do
-      local next_speed = game_config.default_speed
+      local next_speed = state.speeds[id]
       for code, effect in pairs(user_effects) do
         local config = game_config.effect_config[code]
+        local speed_delta = (game_config.default_speed * (config.speed_inc_percent * effect.stack_count))
         if effect.start_tick ~= nil then
           if math.fmod(tick - effect.start_tick, TICK_RATE) == 0 then
             -- tasks done in discrete 1 sec intervals
             state.healths[id] = state.healths[id] + (config.health_per_second * effect.stack_count)
-            next_speed = next_speed + (next_speed * (config.speed_inc_percent * effect.stack_count))
             if effect.remaining_seconds - 1 > 0 then
               effect.remaining_seconds = effect.remaining_seconds - 1
             else
               user_effects[code] = nil
+              next_speed = next_speed - speed_delta
             end
           end
         elseif effect.start_tick == nil then
           effect.start_tick = tick
-          if not util.is_zero_vector(config.directed_move) then
-            local pos_delta = util.vector_rotate(utility.vector_scale(config.directed_move, effect.stack_count), state.turn_angles[id])
-            local start_pos = state.positions[id]
-            local end_pos = util.vector_add(start_pos, pos_delta)
-            local intersection = util.get_line_intersection(start_pos, end_pos, arena_vertices)
-            end_pos = intersection.point
-            local delta_per_tick = utility.vector_scale(pos_delta, delta_seconds  / config.duration_seconds)
-            state.position_interpolations[id] = { end_pos, delta_per_tick }
-          end
+          next_speed = next_speed + speed_delta
         end
       end
-
       state.speeds[id] = next_speed
       state.effects[id] = user_effects
     end
@@ -442,8 +428,10 @@ function match_handler.match_loop(_, dispatcher, tick, state, messages)
     -- HITS PROCESSING
 
     for _, hit in ipairs(hits_to_process) do
+      local total_directed_move = { x = 0, y = 0, z = 0 }
       state.healths[hit.target_id] = state.healths[hit.target_id] + hit.composite_ability.on_hit.health_delta
       state.effects[hit.target_id] = add_new_effects(state.effects[hit.target_id], hit.composite_ability.on_hit.effects)
+      total_directed_move = util.vector_add(total_directed_move, hit.composite_ability.on_hit.directed_move)
       local special_hit_key = "on_hit_friendly"
       if hit.target_id ~= hit.from_id then
         local to_team = state.users[hit.target_id].team
@@ -454,28 +442,20 @@ function match_handler.match_loop(_, dispatcher, tick, state, messages)
       end
       state.healths[hit.target_id] = state.healths[hit.target_id] + hit.composite_ability[special_hit_key].health_delta
       state.effects[hit.target_id] = add_new_effects(state.effects[hit.target_id], hit.composite_ability[special_hit_key].effects)
-    end
+      total_directed_move = util.vector_add(total_directed_move, hit.composite_ability[special_hit_key].directed_move)
 
-    -- INPUT PROCESSING
-
-    for _, input in pairs(state.inputs) do
-        input.jmp = 0
-    end
-
-    -- POSITION INTERPOLATION PROCESSING
-
-    for id, interp in pairs(state.position_interpolations) do
-      local current_pos = state.positions[id]
-      if current_pos ~= nil then
-        if util.get_vector_distance(current, interp.end_pos) < util.vector_magnitude(interp.delta_per_tick) then
-          state.positions[id] = interp.end_pos
-          state.position_interpolations[id] = nil
-        else
-          state.positions[id] = util.vector_add(current_pos, interp.delta_per_tick)
-        end
-      else
-        state.position_interpolations[id] = nil
+      if not util.is_zero_vector(total_directed_move) then
+        local pos_delta = util.vector_scale(state.rotations[hit.target_id], total_directed_move.z)
+        local start_pos = util.vector_add(state.positions[hit.target_id], game_config.character_line_of_sight_point)
+        local furthest_end_pos = util.vector_add(start_pos, pos_delta)
+        local intersection = util.get_closest_line_intersection(start_pos, furthest_end_pos, arena_vertices)
+        local end_offset = util.vector_add(util.vector_scale(state.rotations[hit.target_id], (game_config.character_dimensions.z / 2)), game_config.character_line_of_sight_point)
+        local end_pos = util.vector_subtract(intersection.point, end_offset)
+        end_pos.override = true
+        state.positions[hit.target_id] = end_pos
+        util.table_log({ pos_delta = pos_delta, start_pos = start_pos, furthest_end_pos = furthest_end_pos, intersection = intersection, end_offset = end_offset, end_pos = end_pos })
       end
+
     end
 
     -- PASSIVES
@@ -486,6 +466,23 @@ function match_handler.match_loop(_, dispatcher, tick, state, messages)
         state.powers[id] = math.min(game_config.max_power, state.powers[id] + game_config.passive_power_per_second)
       end
     end
+
+    local update = {
+        pos = state.positions,
+        rot = state.rotations,
+        inp = state.inputs,
+        trg = state.targets,
+        hlt = state.healths,
+        pwr = state.powers,
+        eff = state.effects,
+        cst = state.casts,
+        spd = state.speeds,
+        prj = state.projectiles,
+    }
+
+    local encoded_update = nk.json_encode(update)
+
+    dispatcher.broadcast_message(OpCodes.update_state, encoded_update)
 
     return state
 end
