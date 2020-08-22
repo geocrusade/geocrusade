@@ -12,7 +12,7 @@ _global_script_classes=[ {
 "base": "KinematicBody",
 "class": "Character",
 "language": "GDScript",
-"path": "res://src/Character.gd"
+"path": "res://src/old/Character.gd"
 }, {
 "base": "Reference",
 "class": "NakamaAPI",
@@ -87,7 +87,7 @@ _global_script_classes=[ {
 "base": "Character",
 "class": "Player",
 "language": "GDScript",
-"path": "res://src/Player.gd"
+"path": "res://src/old/Player.gd"
 } ]
 _global_script_class_icons={
 "Character": "",
@@ -111,14 +111,14 @@ _global_script_class_icons={
 [application]
 
 config/name="GeoCrusade"
-run/main_scene="res://src/Main.tscn"
+run/main_scene="res://src/test/TestPlayerControl.tscn"
 config/icon="res://icon.png"
 
 [autoload]
 
 Nakama="*res://addons/com.heroiclabs.nakama/Nakama.gd"
-ServerConnection="*res://src/ServerConnection.gd"
-MatchController="*res://src/MatchController.gd"
+ServerConnection="*res://src/old/ServerConnection.gd"
+MatchController="*res://src/old/MatchController.gd"
 
 [input]
 
@@ -141,11 +141,21 @@ move_backward={
 }
 move_left={
 "deadzone": 0.5,
+"events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":false,"meta":false,"command":false,"pressed":false,"scancode":81,"unicode":0,"echo":false,"script":null)
+ ]
+}
+move_right={
+"deadzone": 0.5,
+"events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":false,"meta":false,"command":false,"pressed":false,"scancode":69,"unicode":0,"echo":false,"script":null)
+ ]
+}
+turn_left={
+"deadzone": 0.5,
 "events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":false,"meta":false,"command":false,"pressed":false,"scancode":65,"unicode":0,"echo":false,"script":null)
 , Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":false,"meta":false,"command":false,"pressed":false,"scancode":16777231,"unicode":0,"echo":false,"script":null)
  ]
 }
-move_right={
+turn_right={
 "deadzone": 0.5,
 "events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":false,"meta":false,"command":false,"pressed":false,"scancode":68,"unicode":0,"echo":false,"script":null)
 , Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":false,"meta":false,"command":false,"pressed":false,"scancode":16777233,"unicode":0,"echo":false,"script":null)
@@ -174,4 +184,4 @@ ability_4={
 
 [rendering]
 
-environment/default_environment="res://default_env.tres"
+environment/default_environment="res://src/default_env.tres"

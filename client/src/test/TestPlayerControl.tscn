@@ -1,0 +1,17 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://src/World.tscn" type="PackedScene" id=1]
+[ext_resource path="res://src/character.tscn" type="PackedScene" id=2]
+[ext_resource path="res://src/MovementController.gd" type="Script" id=3]
+[ext_resource path="res://src/OrbitalCamera.tscn" type="PackedScene" id=4]
+
+[node name="Spatial" type="Spatial"]
+
+[node name="World" parent="." instance=ExtResource( 1 )]
+
+[node name="character" parent="." instance=ExtResource( 2 )]
+collision_layer = 2
+script = ExtResource( 3 )
+
+[node name="OrbitalCamera" parent="character" instance=ExtResource( 4 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.612988, 0 )
