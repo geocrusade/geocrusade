@@ -1,0 +1,11 @@
+[gd_scene load_steps=4 format=2]
+
+[ext_resource path="res://src/old/Login.tscn" type="PackedScene" id=1]
+[ext_resource path="res://src/old/World.tscn" type="PackedScene" id=2]
+[ext_resource path="res://src/old/Main.gd" type="Script" id=3]
+
+[node name="Main" type="Node"]
+script = ExtResource( 3 )
+WorldScene = ExtResource( 2 )
+
+[node name="Login" parent="." instance=ExtResource( 1 )]
