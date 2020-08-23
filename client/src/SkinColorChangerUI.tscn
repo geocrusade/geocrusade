@@ -1,0 +1,84 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://src/SkinColorChangerUI.gd" type="Script" id=1]
+[ext_resource path="res://src/skin_material.tres" type="Material" id=2]
+
+[node name="SkinColorChangerUI" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_right = -1024.0
+margin_bottom = -600.0
+script = ExtResource( 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+skin_material = ExtResource( 2 )
+
+[node name="RedSlider" type="HSlider" parent="."]
+margin_left = 55.0
+margin_right = 288.0
+margin_bottom = 16.0
+max_value = 255.0
+scrollable = false
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="RedLabel" type="Label" parent="RedSlider"]
+margin_left = 240.0
+margin_right = 280.0
+margin_bottom = 14.0
+text = "0"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="GreenSlider" type="HSlider" parent="."]
+margin_left = 55.0
+margin_top = 25.0
+margin_right = 288.0
+margin_bottom = 41.0
+max_value = 255.0
+scrollable = false
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="GreenLabel" type="Label" parent="GreenSlider"]
+margin_left = 240.0
+margin_right = 280.0
+margin_bottom = 14.0
+text = "0"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="BlueSlider" type="HSlider" parent="."]
+margin_left = 55.0
+margin_top = 50.0
+margin_right = 288.0
+margin_bottom = 66.0
+max_value = 255.0
+scrollable = false
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="BlueLabel" type="Label" parent="BlueSlider"]
+margin_left = 240.0
+margin_right = 280.0
+margin_bottom = 14.0
+text = "0"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="ColorRect" type="ColorRect" parent="."]
+margin_left = 2.47517
+margin_top = 6.65011
+margin_right = 52.4752
+margin_bottom = 56.6501
+color = Color( 0, 0, 0, 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}

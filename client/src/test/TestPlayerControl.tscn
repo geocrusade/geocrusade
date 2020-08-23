@@ -5,13 +5,15 @@
 [ext_resource path="res://src/MovementController.gd" type="Script" id=3]
 [ext_resource path="res://src/OrbitalCamera.tscn" type="PackedScene" id=4]
 
-[node name="Spatial" type="Spatial"]
+[node name="Root" type="Node"]
 
 [node name="World" parent="." instance=ExtResource( 1 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0614452, -0.0556697, -0.15513 )
 
 [node name="character" parent="." instance=ExtResource( 2 )]
-collision_layer = 2
-script = ExtResource( 3 )
 
 [node name="OrbitalCamera" parent="character" instance=ExtResource( 4 )]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.612988, 0 )
+
+[node name="MovementController" type="Node" parent="character"]
+script = ExtResource( 3 )
