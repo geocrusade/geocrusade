@@ -1,0 +1,112 @@
+[gd_scene load_steps=19 format=2]
+
+[ext_resource path="res://assets/fx_textures/glowing_orb.png" type="Texture" id=1]
+[ext_resource path="res://assets/fx_textures/fire_burst.jpg" type="Texture" id=2]
+[ext_resource path="res://assets/fx_textures/star_burst.jpg" type="Texture" id=3]
+
+[sub_resource type="Curve" id=1]
+_data = [ Vector2( 0, 0.866364 ), 0.0, 0.0, 0, 0, Vector2( 0.467742, 1 ), 0.0, 0.0, 0, 0, Vector2( 1, 0.884545 ), 0.0, 0.0, 0, 0 ]
+
+[sub_resource type="CurveTexture" id=2]
+curve = SubResource( 1 )
+
+[sub_resource type="ParticlesMaterial" id=3]
+direction = Vector3( 0, 0, 0 )
+spread = 0.0
+gravity = Vector3( 0, 0, 0 )
+scale_curve = SubResource( 2 )
+
+[sub_resource type="SpatialMaterial" id=4]
+flags_transparent = true
+flags_unshaded = true
+params_blend_mode = 1
+params_cull_mode = 2
+params_billboard_mode = 1
+params_billboard_keep_scale = true
+albedo_color = Color( 0.996078, 0.956863, 0, 0.898039 )
+albedo_texture = ExtResource( 1 )
+
+[sub_resource type="QuadMesh" id=5]
+material = SubResource( 4 )
+
+[sub_resource type="Curve" id=6]
+_data = [ Vector2( 0, 0.512818 ), 0.0, 0.0, 0, 0, Vector2( 0.467742, 0.740091 ), 0.0, 0.0, 0, 0, Vector2( 1, 0.503728 ), 0.0, 0.0, 0, 0 ]
+
+[sub_resource type="CurveTexture" id=7]
+curve = SubResource( 6 )
+
+[sub_resource type="ParticlesMaterial" id=8]
+direction = Vector3( 0, 0, 0 )
+spread = 0.0
+gravity = Vector3( 0, 0, 0 )
+scale_curve = SubResource( 7 )
+
+[sub_resource type="SpatialMaterial" id=9]
+flags_transparent = true
+flags_unshaded = true
+params_blend_mode = 1
+params_cull_mode = 2
+params_billboard_mode = 1
+params_billboard_keep_scale = true
+albedo_color = Color( 0.996078, 0.768627, 0, 0.376471 )
+albedo_texture = ExtResource( 2 )
+
+[sub_resource type="QuadMesh" id=10]
+material = SubResource( 9 )
+
+[sub_resource type="Curve" id=11]
+_data = [ Vector2( 0, 0.504545 ), 0.0, 0.0, 0, 0, Vector2( 0.994624, 0 ), 0.0, 0.0, 0, 0 ]
+
+[sub_resource type="CurveTexture" id=12]
+curve = SubResource( 11 )
+
+[sub_resource type="ParticlesMaterial" id=13]
+lifetime_randomness = 1.0
+emission_shape = 1
+emission_sphere_radius = 0.1
+direction = Vector3( 0, 0, 1 )
+spread = 10.0
+gravity = Vector3( 0, 0, 0 )
+initial_velocity = 0.25
+angular_velocity = 1.0
+scale = 0.1
+scale_curve = SubResource( 12 )
+
+[sub_resource type="SpatialMaterial" id=14]
+flags_transparent = true
+flags_unshaded = true
+params_blend_mode = 1
+params_cull_mode = 2
+params_billboard_mode = 1
+params_billboard_keep_scale = true
+albedo_color = Color( 0.905882, 0.654902, 0.121569, 1 )
+albedo_texture = ExtResource( 3 )
+
+[sub_resource type="QuadMesh" id=15]
+material = SubResource( 14 )
+
+[node name="Projectile" type="Spatial"]
+
+[node name="OmniLight" type="OmniLight" parent="."]
+light_color = Color( 0.972549, 0.72549, 0.0666667, 1 )
+omni_range = 2.37745
+
+[node name="Orb" type="Particles" parent="."]
+amount = 1
+visibility_aabb = AABB( -1.93078, -1.46052, -1.43851, 3.86156, 2.92103, 2.87702 )
+process_material = SubResource( 3 )
+draw_pass_1 = SubResource( 5 )
+
+[node name="Flame" type="Particles" parent="."]
+amount = 1
+lifetime = 2.0
+visibility_aabb = AABB( -4, -1.56081, -2.29806, 8, 3.12161, 4.59612 )
+process_material = SubResource( 8 )
+draw_pass_1 = SubResource( 10 )
+
+[node name="Particles" type="Particles" parent="."]
+amount = 40
+lifetime = 3.0
+visibility_aabb = AABB( -1.4854, -1.33771, -1.24424, 2.9708, 2.67541, 2.48848 )
+process_material = SubResource( 13 )
+draw_pass_1 = SubResource( 15 )

@@ -1,10 +1,8 @@
 [gd_scene load_steps=2 format=2]
 
-[ext_resource path="res://src/old/ArenaMatchMakerUI.gd" type="Script" id=1]
+[ext_resource path="res://src/ArenaMatchMakerUI.gd" type="Script" id=1]
 
 [node name="ArenaMatchMakerUI" type="Control"]
-anchor_right = 1.0
-anchor_bottom = 1.0
 margin_right = -748.0
 margin_bottom = -525.0
 mouse_filter = 1
@@ -13,24 +11,24 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="FindPanel" type="Panel" parent="."]
+[node name="PlayPanel" type="Panel" parent="."]
 margin_right = 275.0
 margin_bottom = 75.0
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="Title" type="Label" parent="FindPanel"]
+[node name="Title" type="Label" parent="PlayPanel"]
 margin_top = 5.0
 margin_right = 250.0
-text = "Find Arena Match"
+text = "Play Arena Match"
 align = 1
 valign = 1
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="Find1v1" type="Button" parent="FindPanel"]
+[node name="Button1v1" type="Button" parent="PlayPanel"]
 margin_left = 8.99999
 margin_top = 39.0
 margin_right = 84.0
@@ -40,14 +38,14 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="Find2v2" type="Button" parent="FindPanel"]
+[node name="Button2v2" type="Button" parent="PlayPanel"]
 margin_left = 97.0
 margin_top = 38.0
 margin_right = 172.0
 margin_bottom = 63.0
 text = "2v2"
 
-[node name="Find3v3" type="Button" parent="FindPanel"]
+[node name="Button3v3" type="Button" parent="PlayPanel"]
 margin_left = 185.0
 margin_top = 39.0
 margin_right = 260.0
@@ -65,7 +63,7 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="MatchType" type="Label" parent="SearchingPanel"]
+[node name="TeamSize" type="Label" parent="SearchingPanel"]
 margin_top = 5.0
 margin_right = 200.0
 text = "2V2"
@@ -94,7 +92,7 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="MatchFoundPanel" type="Panel" parent="."]
+[node name="MatchReadyPanel" type="Panel" parent="."]
 visible = false
 margin_right = 200.0
 margin_bottom = 75.0
@@ -102,7 +100,7 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="Title" type="Label" parent="MatchFoundPanel"]
+[node name="Title" type="Label" parent="MatchReadyPanel"]
 margin_top = 5.0
 margin_right = 200.0
 text = "Match Ready"
@@ -112,27 +110,26 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="TimeRemaining" type="Label" parent="MatchFoundPanel"]
+[node name="TimeRemaining" type="Label" parent="MatchReadyPanel"]
 margin_top = 25.0
 margin_right = 200.0
-text = "60"
 align = 1
 valign = 1
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="Cancel" type="Button" parent="MatchFoundPanel"]
+[node name="Reject" type="Button" parent="MatchReadyPanel"]
 margin_left = 14.0
 margin_top = 38.0
 margin_right = 89.0
 margin_bottom = 63.0
-text = "Cancel"
+text = "Reject"
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="Join" type="Button" parent="MatchFoundPanel"]
+[node name="Join" type="Button" parent="MatchReadyPanel"]
 margin_left = 109.0
 margin_top = 39.0
 margin_right = 184.0
@@ -142,5 +139,5 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="Timer" type="Timer" parent="MatchFoundPanel"]
+[node name="Timer" type="Timer" parent="MatchReadyPanel"]
 autostart = true
