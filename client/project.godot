@@ -111,7 +111,7 @@ _global_script_class_icons={
 [application]
 
 config/name="GeoCrusade"
-run/main_scene="res://src/test/TestPlayerControl.tscn"
+run/main_scene="res://src/Main.tscn"
 config/icon="res://icon.png"
 
 [input]

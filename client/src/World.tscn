@@ -16,6 +16,7 @@ omni_range = 125.67
 
 [node name="OmniLight3" type="OmniLight" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -69.8675, 50.7664, 73.5499 )
+visible = false
 light_color = Color( 0.854902, 0.568627, 0.12549, 1 )
 light_energy = 2.35
 omni_range = 135.665
