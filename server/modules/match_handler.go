@@ -9,18 +9,18 @@ import (
 
 type CastState struct {
   AbilityCodes []int
-  ElapsedSeconds float
+  ElapsedSeconds float32
 }
 
 type Vector3 struct {
-  X float
-  Y float
-  Z float
+  X float32
+  Y float32
+  Z float32
 }
 
 type EffectState struct {
   Code int
-  ElapsedSeconds float
+  ElapsedSeconds float32
   Count int
 }
 
@@ -30,7 +30,7 @@ type CharacterState struct {
   Cast CastState
   Position Vector3
   Rotation Vector3
-  Speed float
+  Speed float32
   Target string
   AbilityCodes []int
   Effects []EffectState
