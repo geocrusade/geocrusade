@@ -1,150 +1,116 @@
 package main
 
-type AbilityType int
-
-const (
-  FireType AbilityType = iota
-  MeleeType
-  LifeType
-  AgilityType
-)
-
 type EffectType int
 
-const (
-  BurnType EffectType = iota
-  BleedType
-  MendType
-  SprintType
-)
-
-type AbilityComponentType int
-
-const (
-  CastType AbilityComponentType = iota
-  RangeType
-  PowerDeltaType
-  HealthDeltaType
-  OnHitType
-  OnHitAllyType
-  OnHitHostileType
-  ApplyEffectsType
-  ProjectileType
-)
-type IAbilityComponent interface {
-  GetType() AbilityComponentType
-  GetName() string
-}
-
-type AbilityComponent struct {
-  Type AbilityComponentType
-  Name string
-}
-
-func (c AbilityComponent) GetType() AbilityComponentType {
-  return c.Type
-}
-
-func (c AbilityComponent) GetName() string {
-  return c.Name
-}
-
-type Cast struct {
-  AbilityComponent
-  DurationSeconds float32
-  CancelOnMove bool
-}
-
-func NewCast(durationSeconds float32, cancelOnMove bool) Cast {
-  return Cast{ AbilityComponent{ CastType, "Cast"} , durationSeconds, cancelOnMove }
+type ResourceCost struct {
+  Power int
+  Health int
 }
 
 type Range struct {
-  AbilityComponent
   MinMeters float32
   MaxMeters float32
 }
 
-func NewRange(minMeters float32, maxMeters float32) Range {
-  return Range{ AbilityComponent{ RangeType, "Range"}, minMeters, maxMeters }
+type Cast struct {
+  DurationSeconds float32
+  CancelOnMove bool
 }
 
-type PowerDelta struct {
-  AbilityComponent
-  Value float32
-}
-
-func NewPowerDelta(value float32) PowerDelta {
-  return PowerDelta{ AbilityComponent{ PowerDeltaType, "PowerDelta" }, value }
-}
-
-type HealthDelta struct {
-  AbilityComponent
-  Value float32
-}
-
-func NewHealthDelta(value float32) HealthDelta {
-  return HealthDelta{ AbilityComponent{ HealthDeltaType, "HealthDelta" }, value }
+type AttributeChange struct {
+  Health int
+  Power int
+  Speed float32
+  Effects []EffectConfig
 }
 
 type OnHit struct {
-  AbilityComponent
-  Components []IAbilityComponent
-}
-
-func NewOnHit(components []IAbilityComponent) OnHit {
-  return OnHit{ AbilityComponent{ OnHitType, "OnHit" }, components }
-}
-
-type OnHitAlly struct {
-  AbilityComponent
-  Components []IAbilityComponent
-}
-
-func NewOnHitAlly (components []IAbilityComponent) OnHitAlly {
-  return OnHitAlly{ AbilityComponent{ OnHitAllyType, "OnHitAlly" }, components }
-}
-
-type OnHitHostile struct {
-  AbilityComponent
-  Components []IAbilityComponent
-}
-
-func NewOnHitHostile (components []IAbilityComponent) OnHitHostile {
-  return OnHitHostile{ AbilityComponent{ OnHitHostileType, "OnHitHostile" }, components }
-}
-
-type ApplyEffects struct {
-  AbilityComponent
-  Effects []EffectType
-}
-
-func NewApplyEffects (effects []EffectType) ApplyEffects{
-  return ApplyEffects{ AbilityComponent{ ApplyEffectsType, "ApplyEffects" }, effects }
+  Any AttributeChange
+  Ally AttributeChange
+  Hostile AttributeChange
 }
 
 type Projectile struct {
-  AbilityComponent
   MetersPerSecond float32
-  Components []IAbilityComponent
+  OnHit
 }
 
-func NewProjectile (metersPerSecond float32, components []IAbilityComponent) Projectile {
-  return Projectile{ AbilityComponent{ ProjectileType, "Projectile" }, metersPerSecond, components }
+type BaseAbilityConfig struct {
+  ResourceCost
+  Range
+  Cast
+  OnHit
+  Projectile
+}
+
+type SecondaryAbilityConfig struct {
+  Default BaseAbilityConfig
+  Overrides map[string]BaseAbilityConfig
 }
 
 type AbilityConfig struct {
-  Type AbilityType
-  Name string
-  Components []IAbilityComponent
+  Primary BaseAbilityConfig
+  Secondary SecondaryAbilityConfig
 }
 
-var FireConfig = AbilityConfig{FireType, "Fire", []IAbilityComponent {
-  NewCast(1.0, true),
-  NewRange(0, 30),
-  NewPowerDelta(-20),
-  NewProjectile(3.0, []IAbilityComponent{
-    NewOnHit([]IAbilityComponent{ NewApplyEffects([]EffectType{ BurnType }) }),
-    NewOnHitHostile([]IAbilityComponent{ NewHealthDelta(-20) }),
-  }),
-}}
+type EffectConfig struct {
+  DurationSeconds float32
+  MaxCount int
+  OnHit
+}
+
+type GameConfigType struct {
+  Abilities []AbilityConfig
+  Effects []EffectConfig
+}
+
+var BurnConfig = EffectConfig{
+  3,
+  4,
+  OnHit{
+    Any: AttributeChange{
+      Health: -2
+    }
+  }
+}
+
+var FireConfig = AbilityConfig{
+  Primary: BaseAbilityConfig{
+    ResourceCost{ Power: 20 },
+    Range{0, 30},
+    Cast{1, true},
+    Projectile: Projectile{
+      MetersPerSecond: 3,
+      OnHit{
+        Any: AttributeChange{ Effects: []EffectConfig{ BurnConfig }},
+        Hostile: AttributeChange{ Health: -20 },
+      },
+    },
+  },
+  Secondary: SecondaryAbilityConfig{
+    Default: BaseAbilityConfig{
+      ResourceCost{ Power: 5 },
+      Range{0, 5},
+      Cast{0.25},
+      Projectile: Projectile{
+        MetersPerSecond: 
+      }
+    },
+  }
+
+}
+
+var GameConfig = GameConfigType{
+  []AbilityConfig{
+    FireConfig,
+    MeleeConfig,
+    LifeConfig,
+    MobilityConfig,
+  },
+  []EffectConfig{
+    BurnConfig,
+    BleedConfig,
+    MendConfig,
+    SprintConfig,
+  },
+}
