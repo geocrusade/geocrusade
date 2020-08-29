@@ -7,7 +7,38 @@ import (
   "github.com/heroiclabs/nakama-common/runtime"
 )
 
-type MatchState struct {}
+type CastState struct {
+  AbilityCodes []int
+  ElapsedSeconds float
+}
+
+type Vector3 struct {
+  X float
+  Y float
+  Z float
+}
+
+type EffectState struct {
+  Code int
+  ElapsedSeconds float
+  Count int
+}
+
+type CharacterState struct {
+  Health int
+  Power int
+  Cast CastState
+  Position Vector3
+  Rotation Vector3
+  Speed float
+  Target string
+  AbilityCodes []int
+  Effects []EffectState
+}
+
+type MatchState struct {
+  Character map[string]CharacterState
+}
 
 type Match struct{}
 
