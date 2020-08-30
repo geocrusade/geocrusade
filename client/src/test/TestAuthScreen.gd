@@ -1,11 +1,11 @@
-extends Control
+extends Node
 
-onready var _ui = $AuthUI
+onready var _auth_screen = $AuthScreen
 
 onready var _timer = $Timer
 
 func _ready():
-	_ui.connect("auth_requested", self, "_start_auth")
+	_auth_screen.connect("auth_requested", self, "_start_auth")
 	_timer.connect("timeout", self, "_finish_auth")
 	
 func _start_auth(username):
@@ -13,4 +13,5 @@ func _start_auth(username):
 	_timer.start(2)
 
 func _finish_auth():
-	_ui.reset()
+	_auth_screen.reset()
+	_auth_screen.hide()

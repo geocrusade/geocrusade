@@ -41,6 +41,11 @@ type AbilitiesConfigType struct {
 type GameConfigType struct {
   Abilities AbilitiesConfigType
   Effects map[int]EffectType
+  DefaultHealth int
+  DefaultPower int
+  DefaultSpeed float32
+  WorldStartPosition Vector3
+  WorldStartRotation Vector3
 }
 
 const (
@@ -188,7 +193,15 @@ func NewGameConfig() GameConfigType {
     HitAllyEffects: []int { ShieldType },
   }
 
-  return GameConfigType{ AbilitiesConfigType{ base, addition }, effects }
+  return GameConfigType{
+    Abilities: AbilitiesConfigType{ base, addition },
+    Effects: effects,
+    DefaultHealth: 100,
+    DefaultPower: 100,
+    DefaultSpeed: 200,
+    WorldStartPosition: Vector3{ 0, 0, 0 },
+    WorldStartRotation: Vector3{ 0, 0, -1 },
+  }
 }
 
 var GameConfig GameConfigType = NewGameConfig()

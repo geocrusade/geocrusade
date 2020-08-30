@@ -1,11 +1,26 @@
-extends Control
+extends Spatial
 
 signal auth_requested(username)
 
-onready var _name_field : LineEdit = $NameField
-onready var _play_button : Button = $PlayButton
+onready var _logo = $TitleLogo
+onready var _auth_form = $AuthFormUI
+onready var _name_field : LineEdit = $AuthFormUI/NameField
+onready var _play_button : Button = $AuthFormUI/PlayButton
+onready var _camera : Camera = $Camera
 
 onready var _default_play_button_text : String = _play_button.text
+
+func hide():
+	_auth_form.hide()
+	_logo.hide()
+	_camera.current = false
+	.hide()
+
+func show():
+	_auth_form.show()
+	_logo.show()
+	_camera.current = false
+	.show()
 
 func reset():
 	_play_button.disabled = true

@@ -15,6 +15,8 @@ onready var _cam = $PivotY/PivotX/ClippedCamera
 onready var _pivot_y : Spatial = $PivotY
 onready var _pivot_x : Spatial = $PivotY/PivotX
 
+func _ready():
+	_cam.current = true
 
 var _mouse_dir = Vector2.ZERO
 

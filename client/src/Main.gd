@@ -5,7 +5,6 @@ const SERVER_IP := "127.0.0.1"
 const SERVER_PORT := 7350
 
 onready var _auth_screen = $AuthScreen
-onready var _auth_form_ui = $AuthScreen/AuthFormUI
 onready var _world = $World
 
 onready var _client : NakamaClient = Nakama.create_client(SERVER_KEY, SERVER_IP, SERVER_PORT, "http")
@@ -13,7 +12,7 @@ onready var _socket : NakamaSocket = Nakama.create_socket_from(_client)
 var _session : NakamaSession
 
 func _ready():
-	_auth_form_ui.connect("auth_requested", self, "_authenticate")
+	_auth_screen.connect("auth_requested", self, "_authenticate")
 
 func _authenticate(username : String) -> void:
 	var device_id = OS.get_unique_id() + username
@@ -21,7 +20,7 @@ func _authenticate(username : String) -> void:
 	if not _session.is_exception():
 		_connect_socket()
 	else:
-		_auth_form_ui.reset()
+		_auth_screen.reset()
 		printerr("Session error %s" % _session)
 		
 func _connect_socket() -> void:
@@ -34,19 +33,19 @@ func _connect_socket() -> void:
 	yield(_socket.connect_async(_session), "completed")
 
 func _on_socket_connected():
-	_auth_form_ui.reset()
+	_auth_screen.reset()
 	_auth_screen.hide()
-	_setup_world()
+	_join_world()
 	
 func _on_socket_closed():
 	_auth_screen.show()
 
 func _on_socket_error(err):
 	_auth_screen.show()
-	_auth_form_ui.reset()
+	_auth_screen.reset()
 	printerr("Socket error %s" % err)
 
-func _setup_world() -> void:
+func _join_world() -> void:
 	var result: NakamaAPI.ApiRpc = yield(
 		_client.rpc_async(_session, "get_world_id", ""), "completed"
 	)
