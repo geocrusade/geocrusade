@@ -1,116 +1,194 @@
 package main
 
-type EffectType int
+// hits, attribute changes, projectiles, effects, canceled effects, casts, range, resource cost
+// ability add rules
+// ranged projectile, ranged instant, ranged instant aoe, ranged projectile aoe, melee aoe, melee, multi target, shield
+// dot, hots, sets
 
-type ResourceCost struct {
-  Power int
-  Health int
-}
-
-type Range struct {
-  MinMeters float32
-  MaxMeters float32
-}
-
-type Cast struct {
+type EffectType struct {
   DurationSeconds float32
-  CancelOnMove bool
+  MaxStackSize int
+  HealthPerTick int
+  PowerPerTick int
+  SpeedDelta float32
+  DamageMult float32
+  BoxSize Vector3
 }
 
-type AttributeChange struct {
-  Health int
-  Power int
-  Speed float32
-  Effects []EffectConfig
+type AbilityType struct {
+  PowerDelta int
+  MinRange float32
+  MaxRange float32
+  CastSeconds float32
+  CastWhileMoving bool
+  PassiveEffects []int
+  HitEffects []int
+  HitHealthDelta int
+  HitEnemyHealthDelta int
+  HitEnemyEffects []int
+  HitAllyEffects []int
+  HitAllyRemoveEffects []int
+  HitAllyMoveDelta Vector3
+  HitAllyHealthDelta int
+  ProjectileMetersPerSecond float32
 }
 
-type OnHit struct {
-  Any AttributeChange
-  Ally AttributeChange
-  Hostile AttributeChange
-}
-
-type Projectile struct {
-  MetersPerSecond float32
-  OnHit
-}
-
-type BaseAbilityConfig struct {
-  ResourceCost
-  Range
-  Cast
-  OnHit
-  Projectile
-}
-
-type SecondaryAbilityConfig struct {
-  Default BaseAbilityConfig
-  Overrides map[string]BaseAbilityConfig
-}
-
-type AbilityConfig struct {
-  Primary BaseAbilityConfig
-  Secondary SecondaryAbilityConfig
-}
-
-type EffectConfig struct {
-  DurationSeconds float32
-  MaxCount int
-  OnHit
+type AbilitiesConfigType struct {
+  Base map[int]AbilityType
+  Addition map[int]AbilityType
 }
 
 type GameConfigType struct {
-  Abilities []AbilityConfig
-  Effects []EffectConfig
+  Abilities AbilitiesConfigType
+  Effects map[int]EffectType
 }
 
-var BurnConfig = EffectConfig{
-  3,
-  4,
-  OnHit{
-    Any: AttributeChange{
-      Health: -2
-    }
-  }
-}
+const (
+  BurnType int = iota
+  BleedType
+  MendType
+  SprintType
+  FortifyType
+  ShieldType
+)
 
-var FireConfig = AbilityConfig{
-  Primary: BaseAbilityConfig{
-    ResourceCost{ Power: 20 },
-    Range{0, 30},
-    Cast{1, true},
-    Projectile: Projectile{
-      MetersPerSecond: 3,
-      OnHit{
-        Any: AttributeChange{ Effects: []EffectConfig{ BurnConfig }},
-        Hostile: AttributeChange{ Health: -20 },
-      },
-    },
-  },
-  Secondary: SecondaryAbilityConfig{
-    Default: BaseAbilityConfig{
-      ResourceCost{ Power: 5 },
-      Range{0, 5},
-      Cast{0.25},
-      Projectile: Projectile{
-        MetersPerSecond: 
-      }
-    },
+const (
+  FireType int = iota
+  MeleeType
+  LifeType
+  MobilityType
+  ProtectionType
+)
+
+func NewGameConfig() GameConfigType {
+  effects := make(map[int]EffectType)
+
+
+  effects[BurnType] = EffectType{
+    DurationSeconds: 3,
+    MaxStackSize: 4,
+    HealthPerTick: -5,
   }
 
+  effects[BleedType] = EffectType{
+    DurationSeconds: 3,
+    MaxStackSize: 4,
+    HealthPerTick: -1,
+  }
+
+  effects[MendType] = EffectType{
+    DurationSeconds: 3,
+    MaxStackSize: 4,
+    HealthPerTick: 1,
+  }
+
+  effects[SprintType] = EffectType{
+    DurationSeconds: 3,
+    MaxStackSize: 4,
+    SpeedDelta: 25,
+  }
+
+  effects[FortifyType] = EffectType{
+    DurationSeconds: -1, //forever
+    MaxStackSize: 1,
+    DamageMult: 0.8,
+  }
+
+  effects[ShieldType] = EffectType{
+    DurationSeconds: 5,
+    MaxStackSize: 4,
+    BoxSize: Vector3{2, 2, 0.5},
+  }
+
+  base := make(map[int]AbilityType)
+  addition := make(map[int]AbilityType)
+
+  base[FireType] = AbilityType{
+    PowerDelta: -20,
+    MaxRange: 30,
+    CastSeconds: 1,
+    HitEnemyHealthDelta: -20,
+    HitEffects: []int { BurnType },
+    ProjectileMetersPerSecond: 5,
+  }
+
+  addition[FireType] = AbilityType{
+    PowerDelta: -5,
+    MaxRange: 5,
+    CastSeconds: 0.25,
+    HitEnemyHealthDelta: -5,
+    HitEffects: []int { BurnType },
+  }
+
+  base[MeleeType] = AbilityType{
+    PowerDelta: -5,
+    MaxRange: 5,
+    CastSeconds: 0.25,
+    CastWhileMoving: true,
+    HitEnemyHealthDelta: -5,
+    HitEffects: []int { BleedType },
+  }
+
+  addition[MeleeType] = AbilityType{
+    PowerDelta: -5,
+    CastSeconds: 0.25,
+    CastWhileMoving: true,
+    HitEnemyHealthDelta: -5,
+    HitEffects: []int { BleedType },
+  }
+
+  base[LifeType] = AbilityType{
+    PowerDelta: -20,
+    MaxRange: 30,
+    CastSeconds: 1,
+    HitAllyHealthDelta: 10,
+    HitAllyEffects: []int { MendType },
+    HitAllyRemoveEffects: []int { BleedType },
+  }
+
+  addition[LifeType] = AbilityType{
+    PowerDelta: -10,
+    MaxRange: 5,
+    CastSeconds: 0.25,
+    HitAllyHealthDelta: 5,
+    HitAllyEffects: []int { MendType },
+    HitAllyRemoveEffects: []int { BleedType },
+  }
+
+  base[MobilityType] = AbilityType{
+    PowerDelta: -20,
+    MaxRange: 5,
+    CastSeconds: 0.25,
+    CastWhileMoving: true,
+    HitAllyMoveDelta: Vector3{ 0, 0, -10 },
+    HitAllyEffects: []int { SprintType },
+  }
+
+  addition[MobilityType] = AbilityType{
+    PowerDelta: -5,
+    CastSeconds: 0.25,
+    CastWhileMoving: true,
+    HitAllyMoveDelta: Vector3{ 0, 0, -2 },
+    HitAllyEffects: []int { SprintType },
+  }
+
+  base[ProtectionType] = AbilityType{
+    PowerDelta: -20,
+    MaxRange: 5,
+    CastSeconds: 0.5,
+    CastWhileMoving: true,
+    PassiveEffects: []int { FortifyType },
+    HitAllyEffects: []int { ShieldType },
+  }
+
+  addition[ProtectionType] = AbilityType{
+    PowerDelta: -10,
+    CastSeconds: 0.25,
+    CastWhileMoving: true,
+    HitAllyEffects: []int { ShieldType },
+  }
+
+  return GameConfigType{ AbilitiesConfigType{ base, addition }, effects }
 }
 
-var GameConfig = GameConfigType{
-  []AbilityConfig{
-    FireConfig,
-    MeleeConfig,
-    LifeConfig,
-    MobilityConfig,
-  },
-  []EffectConfig{
-    BurnConfig,
-    BleedConfig,
-    MendConfig,
-    SprintConfig,
-  },
-}
+var GameConfig GameConfigType = NewGameConfig()

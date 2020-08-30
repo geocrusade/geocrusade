@@ -12,14 +12,8 @@ type CastState struct {
   ElapsedSeconds float32
 }
 
-type Vector3 struct {
-  X float32
-  Y float32
-  Z float32
-}
-
 type EffectState struct {
-  Code int
+  Type int
   ElapsedSeconds float32
   Count int
 }

@@ -6,6 +6,12 @@ import (
   "github.com/heroiclabs/nakama-common/runtime"
 )
 
+type Vector3 struct {
+  X float32
+  Y float32
+  Z float32
+}
+
 func InitModule(ctx context.Context, logger runtime.Logger, db *sql.DB, nk runtime.NakamaModule, initializer runtime.Initializer) error {
 
   if err := initializer.RegisterMatch(MatchModuleName, func(ctx context.Context, logger runtime.Logger, db *sql.DB, nk runtime.NakamaModule) (runtime.Match, error) {
