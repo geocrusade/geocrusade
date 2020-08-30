@@ -2,11 +2,16 @@
 
 importer="texture"
 type="StreamTexture"
-valid=false
+path="res://.import/fire_ball_3.png-5903e2c3b7a2a1e4794e6a2607eb2a52.stex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
-source_file="res://assets/fx_textures/fire_ball_1.jpg"
+source_file="res://assets/fx_textures/fire_ball_3.png"
+dest_files=[ "res://.import/fire_ball_3.png-5903e2c3b7a2a1e4794e6a2607eb2a52.stex" ]
+
 [params]
 
 compress/mode=0

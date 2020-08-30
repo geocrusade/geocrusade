@@ -102,6 +102,10 @@ config/name="GeoCrusade"
 run/main_scene="res://src/Main.tscn"
 config/icon="res://icon.png"
 
+[autoload]
+
+Nakama="*res://addons/com.heroiclabs.nakama/Nakama.gd"
+
 [input]
 
 jump={
