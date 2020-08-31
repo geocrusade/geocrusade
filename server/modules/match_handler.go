@@ -11,8 +11,15 @@ import (
 const (
   OpCodeStateInit int64 = iota
   OpCodeStateUpdate
-  OpCodeOnJoinConfig
+  OpCodeSetJoinConfig
+  OpCodeInputUpdate
 )
+
+type InputState struct {
+  Direction Vector3
+  Jump bool
+  ClientTick int64
+}
 
 type CastState struct {
   AbilityTypes []int
@@ -99,7 +106,7 @@ func (m *Match) MatchJoin(ctx context.Context, logger runtime.Logger, db *sql.DB
       }
       bytes, _ := json.Marshal(PrivateOnJoinConfig{ characterId })
 
-      dispatcher.BroadcastMessage(OpCodeOnJoinConfig, bytes, []runtime.Presence{ p }, nil, true)
+      dispatcher.BroadcastMessage(OpCodeSetJoinConfig, bytes, []runtime.Presence{ p }, nil, true)
     }
 
     bytes, _ := json.Marshal(mState.Public)
@@ -124,7 +131,28 @@ func (m *Match) MatchLeave(ctx context.Context, logger runtime.Logger, db *sql.D
 }
 
 func (m *Match) MatchLoop(ctx context.Context, logger runtime.Logger, db *sql.DB, nk runtime.NakamaModule, dispatcher runtime.MatchDispatcher, tick int64, state interface{}, messages []runtime.MatchData) interface{} {
-    return state
+  mState, _ := state.(*MatchState)
+
+  delta := float32(1.0 / MatchTickRate)
+
+  for _, message := range messages {
+    switch message.GetOpCode() {
+    case OpCodeInputUpdate:
+      input := InputState{}
+      err := json.Unmarshal(message.GetData(), &input)
+      if err != nil {
+        logger.Error("Error reading input update %v", err)
+      }
+      userId := message.GetUserId()
+      characterId := mState.Private.UserIdToCharacterIdMap[userId]
+      character := mState.Public.Characters[characterId]
+      input.Direction.Y = 0
+      velocity := input.Direction.Scale(character.Speed * delta)
+      nextPosition := character.Position.Add(velocity)
+      character.Position = nextPosition
+    }
+  }
+  return mState
 }
 
 func (m *Match) MatchTerminate(ctx context.Context, logger runtime.Logger, db *sql.DB, nk runtime.NakamaModule, dispatcher runtime.MatchDispatcher, tick int64, state interface{}, graceSeconds int) interface{} {

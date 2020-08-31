@@ -6,17 +6,9 @@ import (
   "github.com/heroiclabs/nakama-common/runtime"
 )
 
-type Vector3 struct {
-  X float32
-  Y float32
-  Z float32
-}
-
 func InitModule(ctx context.Context, logger runtime.Logger, db *sql.DB, nk runtime.NakamaModule, initializer runtime.Initializer) error {
 
-  if err := initializer.RegisterMatch(MatchModuleName, func(ctx context.Context, logger runtime.Logger, db *sql.DB, nk runtime.NakamaModule) (runtime.Match, error) {
-    return &Match{}, nil
-  }); err != nil {
+  if err := initializer.RegisterMatch(MatchModuleName, registerMatchCallback); err != nil {
     logger.Error("Unable to register match: %v", err)
     return err
   }
@@ -25,5 +17,15 @@ func InitModule(ctx context.Context, logger runtime.Logger, db *sql.DB, nk runti
     logger.Error("Unable to register rpc: %v", err)
     return err
   }
+
+  if err := initPhysics(); err != nil {
+    logger.Error("Unable to init physics: %v", err)
+    return err
+  }
+
   return nil
+}
+
+func registerMatchCallback(ctx context.Context, logger runtime.Logger, db *sql.DB, nk runtime.NakamaModule) (runtime.Match, error) {
+  return &Match{}, nil
 }

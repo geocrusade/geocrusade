@@ -178,6 +178,10 @@ zoom_out={
  ]
 }
 
+[physics]
+
+common/physics_fps=30
+
 [rendering]
 
 environment/default_environment="res://src/default_env.tres"
