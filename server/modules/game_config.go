@@ -6,20 +6,20 @@ package main
 // dot, hots, sets
 
 type EffectType struct {
-  DurationSeconds float32
+  DurationSeconds float64
   MaxStackSize int
   HealthPerTick int
   PowerPerTick int
-  SpeedDelta float32
-  DamageMult float32
+  SpeedDelta float64
+  DamageMult float64
   BoxSize Vector3
 }
 
 type AbilityType struct {
   PowerDelta int
-  MinRange float32
-  MaxRange float32
-  CastSeconds float32
+  MinRange float64
+  MaxRange float64
+  CastSeconds float64
   CastWhileMoving bool
   PassiveEffects []int
   HitEffects []int
@@ -30,7 +30,7 @@ type AbilityType struct {
   HitAllyRemoveEffects []int
   HitAllyMoveDelta Vector3
   HitAllyHealthDelta int
-  ProjectileMetersPerSecond float32
+  ProjectileMetersPerSecond float64
 }
 
 type AbilitiesConfigType struct {
@@ -43,9 +43,10 @@ type GameConfigType struct {
   Effects map[int]EffectType
   DefaultHealth int
   DefaultPower int
-  DefaultSpeed float32
+  DefaultSpeed float64
   WorldStartPosition Vector3
   WorldStartRotation Vector3
+  Gravity float64
 }
 
 const (
@@ -198,9 +199,10 @@ func NewGameConfig() GameConfigType {
     Effects: effects,
     DefaultHealth: 100,
     DefaultPower: 100,
-    DefaultSpeed: 200,
-    WorldStartPosition: Vector3{ 0, 0, 0 },
+    DefaultSpeed: 5,
+    WorldStartPosition: Vector3{ 0, 15, 0 },
     WorldStartRotation: Vector3{ 0, 0, -1 },
+    Gravity: -1,
   }
 }
 

@@ -9,7 +9,7 @@ func _ready():
 	var verts = mesh.get_faces()
 	for i in range(verts.size()):
 		var vert : Vector3 = verts[i]
-		all_verts.append({X = vert.x, Y = vert.y, Z = vert.z})
+		all_verts.append({X = vert.x * scale.x, Y = vert.y * scale.y, Z = vert.z * scale.z})
 
 	file.open("res://%s_vertices.json" % name, File.WRITE)
 	file.store_string(JSON.print(all_verts))

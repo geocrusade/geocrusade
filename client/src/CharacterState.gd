@@ -27,4 +27,4 @@ func _add_character(id : String, character : Dictionary) -> void:
 func _update_character(id : String, character : Dictionary) -> void:
 	var node : Spatial = _character_nodes[id]
 	node.global_transform.origin = Vector3(character.Position.X, character.Position.Y, character.Position.Z)
-	node.global_transform.basis.z = Vector3(character.Rotation.X, character.Rotation.Y, character.Rotation.Z)
+#	node.global_transform.basis.z = Vector3(character.Rotation.X, character.Rotation.Y, character.Rotation.Z)

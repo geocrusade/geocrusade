@@ -4,6 +4,7 @@ import (
   "context"
   "database/sql"
   "encoding/json"
+  "math"
   "github.com/gofrs/uuid"
   "github.com/heroiclabs/nakama-common/runtime"
 )
@@ -23,12 +24,12 @@ type InputState struct {
 
 type CastState struct {
   AbilityTypes []int
-  ElapsedSeconds float32
+  ElapsedSeconds float64
 }
 
 type EffectState struct {
   Type int
-  ElapsedSeconds float32
+  ElapsedSeconds float64
   Count int
 }
 
@@ -36,9 +37,10 @@ type CharacterState struct {
   Name string
   Health int
   Power int
-  Speed float32
+  Speed float64
   Position Vector3
   Rotation Vector3
+  Velocity Vector3
   Cast CastState
   Target string
   AbilityCodes []int
@@ -133,7 +135,9 @@ func (m *Match) MatchLeave(ctx context.Context, logger runtime.Logger, db *sql.D
 func (m *Match) MatchLoop(ctx context.Context, logger runtime.Logger, db *sql.DB, nk runtime.NakamaModule, dispatcher runtime.MatchDispatcher, tick int64, state interface{}, messages []runtime.MatchData) interface{} {
   mState, _ := state.(*MatchState)
 
-  delta := float32(1.0 / MatchTickRate)
+  delta := 1.0 / MatchTickRate
+
+  characterInputMap := make(map[string]InputState)
 
   for _, message := range messages {
     switch message.GetOpCode() {
@@ -143,15 +147,45 @@ func (m *Match) MatchLoop(ctx context.Context, logger runtime.Logger, db *sql.DB
       if err != nil {
         logger.Error("Error reading input update %v", err)
       }
+      input.Direction.Y = 0
       userId := message.GetUserId()
       characterId := mState.Private.UserIdToCharacterIdMap[userId]
-      character := mState.Public.Characters[characterId]
-      input.Direction.Y = 0
-      velocity := input.Direction.Scale(character.Speed * delta)
-      nextPosition := character.Position.Add(velocity)
-      character.Position = nextPosition
+      characterInputMap[characterId] = input
     }
   }
+
+  for id, character := range mState.Public.Characters {
+    input, inputExists := characterInputMap[id]
+    if !inputExists {
+      input = InputState{}
+    }
+    grounded, slopedDir := getGroundInteraction(character.Position, input.Direction)
+    if grounded {
+      character.Velocity = slopedDir.Scale(character.Speed * delta)
+    }else {
+      character.Velocity.Y += GameConfig.Gravity * delta
+      character.Velocity.Y = math.Max(character.Velocity.Y, GameConfig.Gravity)
+    }
+    character.Velocity = clipVelocityWithCollisions(character.Position, character.Velocity)
+    character.Position = character.Position.Add(character.Velocity)
+    mState.Public.Characters[id] = character
+  }
+
+
+  presences := make([]runtime.Presence, 0, len(mState.Private.Presences))
+
+  for  _, value := range mState.Private.Presences {
+     presences = append(presences, value)
+  }
+
+  publicStateBytes, err := json.Marshal(mState.Public)
+
+  if err != nil {
+    logger.Error("Error creating public state bytes %v", err)
+  }
+
+  dispatcher.BroadcastMessage(OpCodeStateUpdate, publicStateBytes, presences, nil, true)
+
   return mState
 }
 

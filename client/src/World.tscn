@@ -22,4 +22,3 @@ light_energy = 2.35
 omni_range = 135.665
 
 [node name="Landscape" parent="." instance=ExtResource( 1 )]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -9.12177, 0 )
