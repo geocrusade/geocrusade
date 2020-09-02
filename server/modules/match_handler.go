@@ -159,9 +159,12 @@ func (m *Match) MatchLoop(ctx context.Context, logger runtime.Logger, db *sql.DB
     if !inputExists {
       input = InputState{}
     }
-    grounded, slopedDir := getGroundInteraction(character.Position, input.Direction)
+    grounded, dirAlongGround := getGroundInteraction(character.Position, input.Direction)
     if grounded {
-      character.Velocity = slopedDir.Scale(character.Speed * delta)
+      character.Velocity = dirAlongGround.Scale(character.Speed * delta)
+      if input.Jump {
+        character.Velocity.Y += GameConfig.DefaultJumpSpeed * delta
+      }
     }else {
       character.Velocity.Y += GameConfig.Gravity * delta
       character.Velocity.Y = math.Max(character.Velocity.Y, GameConfig.Gravity)

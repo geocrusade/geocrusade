@@ -44,6 +44,7 @@ type GameConfigType struct {
   DefaultHealth int
   DefaultPower int
   DefaultSpeed float64
+  DefaultJumpSpeed float64
   WorldStartPosition Vector3
   WorldStartRotation Vector3
   Gravity float64
@@ -200,6 +201,7 @@ func NewGameConfig() GameConfigType {
     DefaultHealth: 100,
     DefaultPower: 100,
     DefaultSpeed: 5,
+    DefaultJumpSpeed: 8,
     WorldStartPosition: Vector3{ 0, 15, 0 },
     WorldStartRotation: Vector3{ 0, 0, -1 },
     Gravity: -1,
