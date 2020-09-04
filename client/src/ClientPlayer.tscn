@@ -5,68 +5,71 @@
 
 [node name="Player" instance=ExtResource( 3 )]
 
-[node name="HipsControl" parent="Armature/Main" index="0"]
-transform = Transform( 5.96046e-08, 0, -1, 0, -1, 0, -1, 0, 5.96046e-08, 9.18091e-10, 1.50575, 0.0661997 )
-
-[node name="UpperLegL 2" parent="Armature/Main/HipsControl" index="0"]
-transform = Transform( -0.0222577, -0.173514, -0.98458, 0.270787, 0.946965, -0.173007, 0.962382, -0.270462, 0.0259083, 0.0190356, 0.154016, -0.227592 )
-
-[node name="LowerLegL 2" parent="Armature/Main/HipsControl/UpperLegL 2" index="0"]
-transform = Transform( 0.996019, 0.083933, 0.030014, -0.0843415, 0.778429, 0.622041, 0.028846, -0.622096, 0.782409, 6.63923e-08, 0.447647, -1.18269e-08 )
-
 [node name="AnkleL" parent="Armature/Main/HipsControl/UpperLegL 2/LowerLegL 2" index="0"]
-transform = Transform( 0.999196, 0.0146107, 0.0373231, 0.02239, 0.568884, -0.822113, -0.0332441, 0.822288, 0.5681, 4.95587e-08, 0.509089, 4.38229e-08 )
+transform = Transform( 0.990602, 0.0631533, 0.121321, -0.0455106, 0.988669, -0.143048, -0.12898, 0.136182, 0.982252, -1.91785e-08, 0.509089, 6.1786e-08 )
 
 [node name="ToesL 2" parent="Armature/Main/HipsControl/UpperLegL 2/LowerLegL 2/AnkleL" index="0"]
-transform = Transform( 0.996541, -0.0830706, -0.00232738, 0.0453597, 0.567188, -0.822338, 0.0696322, 0.819388, 0.568995, 9.54871e-09, 0.420858, 1.65135e-08 )
+transform = Transform( 0.991156, -0.131508, 0.0177467, 0.0168242, -0.00812268, -0.999825, 0.131629, 0.991282, -0.00583827, 1.23534e-08, 0.420858, 1.06823e-08 )
 
 [node name="Hips 2" parent="Armature/Main/HipsControl" index="1"]
 transform = Transform( -2.86102e-06, 0.159044, -0.987272, -5.14089e-07, -0.987272, -0.159044, -0.999998, 5.21541e-08, 2.80142e-06, 0, 0.30389, 0 )
 
-[node name="Torso 2" parent="Armature/Main/HipsControl/Hips 2" index="0"]
-transform = Transform( 1, 2.81472e-08, 4.22282e-08, -2.3113e-08, 0.993388, -0.114808, -4.51805e-08, 0.114808, 0.993388, 1.60982e-15, 0.294915, -5.58794e-09 )
-
 [node name="Chest 2" parent="Armature/Main/HipsControl/Hips 2/Torso 2" index="0"]
-transform = Transform( 1, 2.20499e-08, 6.03545e-08, -2.26004e-08, 0.999958, 0.00913597, -6.01505e-08, -0.00913597, 0.999958, -2.68144e-15, 0.262647, -2.08934e-09 )
+transform = Transform( 1, -7.39986e-09, 1.55151e-07, -1.17581e-08, 0.992392, 0.123117, -1.54882e-07, -0.123117, 0.992392, -2.33147e-15, 0.262647, -1.66533e-16 )
 
 [node name="Neck 2" parent="Armature/Main/HipsControl/Hips 2/Torso 2/Chest 2" index="0"]
-transform = Transform( 0.99607, 0.000987348, -0.088562, -0.0144053, 0.988429, -0.150999, 0.0873882, 0.151682, 0.984559, 4.48904e-17, 0.642611, 2.56244e-09 )
+transform = Transform( 0.939293, -0.0144228, 0.342812, -0.0270966, 0.992878, 0.116016, -0.342043, -0.118262, 0.932213, 2.0137e-09, 0.642611, -8.8586e-10 )
+
+[node name="Head 2" parent="Armature/Main/HipsControl/Hips 2/Torso 2/Chest 2/Neck 2" index="0"]
+transform = Transform( 1, 8.75591e-17, 6.78678e-13, -8.75597e-17, 1, 9.31322e-10, -6.78678e-13, -9.31322e-10, 1, -1.56983e-17, 0.269697, -6.67319e-10 )
+
+[node name="ShoulderL" parent="Armature/Main/HipsControl/Hips 2/Torso 2/Chest 2" index="1"]
+transform = Transform( 0.155952, 0.987765, 1.31992e-06, -0.987738, 0.155948, -0.00730213, -0.00721299, 0.00113748, 0.999973, 0.155619, 0.452355, -0.0154602 )
 
 [node name="UpperArmL 2" parent="Armature/Main/HipsControl/Hips 2/Torso 2/Chest 2/ShoulderL" index="0"]
-transform = Transform( 0.184423, 0.826894, 0.531257, -0.945084, 0.297588, -0.135111, -0.269818, -0.477165, 0.836368, 1.62434e-07, 0.206779, -1.09144e-09 )
+transform = Transform( -0.580702, 0.0985136, 0.808134, -0.750749, 0.319157, -0.578373, -0.3149, -0.942566, -0.111377, 1.28506e-07, 0.20678, 2.37063e-08 )
 
 [node name="LowerArmL 2" parent="Armature/Main/HipsControl/Hips 2/Torso 2/Chest 2/ShoulderL/UpperArmL 2" index="0"]
-transform = Transform( 0.927263, -0.29858, 0.225902, 0.303293, 0.245237, -0.9208, 0.219533, 0.922339, 0.317957, 1.40965e-07, 0.424971, 1.48382e-08 )
+transform = Transform( 0.885726, -0.302619, 0.352009, 0.307395, -0.185863, -0.933254, 0.347846, 0.934813, -0.0715998, 1.60119e-07, 0.424971, 6.19864e-08 )
 
 [node name="HandL 2" parent="Armature/Main/HipsControl/Hips 2/Torso 2/Chest 2/ShoulderL/UpperArmL 2/LowerArmL 2" index="0"]
-transform = Transform( 0.862276, 0.499818, -0.081623, -0.465203, 0.845413, 0.262417, 0.200166, -0.188305, 0.961494, 7.36927e-08, 0.411673, 1.968e-08 )
+transform = Transform( 0.9497, -0.28382, -0.132344, 0.285705, 0.958305, -0.00492946, 0.128225, -0.0331298, 0.991192, 3.54893e-08, 0.411673, 6.35526e-08 )
+
+[node name="FingersL 2" parent="Armature/Main/HipsControl/Hips 2/Torso 2/Chest 2/ShoulderL/UpperArmL 2/LowerArmL 2/HandL 2" index="0"]
+transform = Transform( 0.931845, 0.359014, -0.0526649, -0.361822, 0.930301, -0.0602067, 0.0273792, 0.0751586, 0.996796, -3.46796e-08, 0.39942, -9.54394e-09 )
 
 [node name="ThumbL 2" parent="Armature/Main/HipsControl/Hips 2/Torso 2/Chest 2/ShoulderL/UpperArmL 2/LowerArmL 2" index="1"]
-transform = Transform( 0.334036, 0.723835, -0.603723, -0.854546, 0.502828, 0.130051, 0.397704, 0.472468, 0.786514, 2.97104e-09, 0.411673, 2.28067e-09 )
+transform = Transform( 0.888282, 0.192569, -0.416979, -0.386124, 0.804727, -0.450912, 0.248723, 0.561544, 0.789178, 4.341e-08, 0.411673, 6.2484e-08 )
 
 [node name="ShoulderR" parent="Armature/Main/HipsControl/Hips 2/Torso 2/Chest 2" index="2"]
-transform = Transform( 0.155953, -0.987764, -9.62988e-07, 0.987738, 0.155949, -0.00730224, 0.00721304, 0.00113786, 0.999973, -0.155619, 0.452355, -0.0154602 )
+transform = Transform( 0.155953, -0.987765, -9.72301e-07, 0.987738, 0.155949, -0.00730225, 0.00721305, 0.00113785, 0.999973, -0.155619, 0.452355, -0.0154602 )
 
 [node name="UpperArmR 2" parent="Armature/Main/HipsControl/Hips 2/Torso 2/Chest 2/ShoulderR" index="0"]
-transform = Transform( 0.15694, -0.889224, -0.42971, 0.935291, 0.273555, -0.224495, 0.317176, -0.366672, 0.874615, -5.20153e-07, 0.20678, 5.47505e-09 )
+transform = Transform( -0.388482, -0.0430985, -0.920448, 0.874372, 0.297984, -0.382987, 0.290785, -0.953595, -0.0780772, 1.6526e-07, 0.20678, -5.00121e-10 )
 
 [node name="LowerArmR 2" parent="Armature/Main/HipsControl/Hips 2/Torso 2/Chest 2/ShoulderR/UpperArmR 2" index="0"]
-transform = Transform( 0.957256, 0.255883, -0.134842, -0.259922, 0.556524, -0.789127, -0.126881, 0.790446, 0.599247, -1.44956e-07, 0.424971, -3.47e-08 )
+transform = Transform( 0.881306, 0.299601, -0.365428, -0.304331, -0.231734, -0.923949, -0.361499, 0.925492, -0.113051, -1.78147e-07, 0.424971, -1.20422e-09 )
 
 [node name="ThumbR 2" parent="Armature/Main/HipsControl/Hips 2/Torso 2/Chest 2/ShoulderR/UpperArmR 2/LowerArmR 2" index="0"]
-transform = Transform( 0.161362, -0.82276, 0.545003, 0.7684, 0.451281, 0.453769, -0.619293, 0.34556, 0.705028, 2.16616e-10, 0.411673, 7.08876e-08 )
+transform = Transform( 0.402256, -0.56107, 0.723457, 0.771453, 0.633242, 0.0621603, -0.492999, 0.533109, 0.687565, -1.01538e-07, 0.411673, 7.14346e-08 )
 
 [node name="HandR 2" parent="Armature/Main/HipsControl/Hips 2/Torso 2/Chest 2/ShoulderR/UpperArmR 2/LowerArmR 2" index="1"]
-transform = Transform( 0.794442, -0.453319, 0.404184, 0.240328, 0.84582, 0.476268, -0.557768, -0.281231, 0.7809, -1.00689e-08, 0.411673, 4.88459e-08 )
+transform = Transform( 0.797264, -0.136836, 0.587916, 0.0604075, 0.987164, 0.147843, -0.6006, -0.0823554, 0.795297, -5.65003e-09, 0.411673, 3.72125e-08 )
+
+[node name="FingersR 2" parent="Armature/Main/HipsControl/Hips 2/Torso 2/Chest 2/ShoulderR/UpperArmR 2/LowerArmR 2/HandR 2" index="0"]
+transform = Transform( 0.931845, -0.359014, 0.0526651, 0.361822, 0.930301, -0.0602067, -0.0273794, 0.0751587, 0.996796, -1.33875e-07, 0.39942, 3.84819e-09 )
 
 [node name="UpperLegR 2" parent="Armature/Main/HipsControl" index="2"]
-transform = Transform( 0.0251429, -0.173422, -0.984527, -0.271252, 0.946707, -0.173688, 0.96218, 0.271422, -0.0232381, 0.0190356, 0.154016, 0.227592 )
+transform = Transform( -0.0155628, -0.213378, -0.976846, -0.295322, 0.934359, -0.199392, 0.955271, 0.285381, -0.0775565, 0.0190356, 0.154016, 0.227592 )
 
 [node name="LowerLegR 2" parent="Armature/Main/HipsControl/UpperLegR 2" index="0"]
-transform = Transform( 0.996019, -0.083933, -0.030014, 0.0843416, 0.778429, 0.622041, -0.028846, -0.622096, 0.782409, -6.92416e-08, 0.447647, -1.83545e-08 )
+transform = Transform( 0.996773, -0.0764575, -0.0244561, 0.0768297, 0.820377, 0.566639, -0.0232606, -0.566689, 0.823603, -5.25153e-08, 0.447647, 6.12668e-09 )
 
 [node name="AnkleR" parent="Armature/Main/HipsControl/UpperLegR 2/LowerLegR 2" index="0"]
-transform = Transform( 0.999081, -0.0110196, -0.0414127, -0.0232453, 0.672493, -0.739739, 0.0360014, 0.740022, 0.671619, -1.27208e-08, 0.509089, 1.06386e-09 )
+transform = Transform( 0.997952, 0.0630366, -0.0108964, -0.0545637, 0.749837, -0.659369, -0.0333939, 0.658613, 0.75174, 5.83564e-08, 0.509089, 7.26902e-09 )
+
+[node name="ToesR 2" parent="Armature/Main/HipsControl/UpperLegR 2/LowerLegR 2/AnkleR" index="0"]
+transform = Transform( 0.996542, 0.0830584, 0.00233277, -0.0357584, 0.454037, -0.890265, -0.0750032, 0.887103, 0.455437, -6.77828e-08, 0.420858, -5.44204e-10 )
 
 [node name="MovementController" type="Node" parent="." index="3"]
 

@@ -41,6 +41,7 @@ type CharacterState struct {
   Position Vector3
   Rotation Vector3
   Velocity Vector3
+  Jump bool
   Cast CastState
   Target string
   AbilityCodes []int
@@ -156,18 +157,19 @@ func (m *Match) MatchLoop(ctx context.Context, logger runtime.Logger, db *sql.DB
 
   for id, character := range mState.Public.Characters {
     input, inputExists := characterInputMap[id]
-    if !inputExists {
-      input = InputState{}
-    }
-    grounded, dirAlongGround := getGroundInteraction(character.Position, input.Direction)
-    if grounded {
-      character.Velocity = dirAlongGround.Scale(character.Speed * delta)
-      if input.Jump {
-        character.Velocity.Y += GameConfig.DefaultJumpSpeed * delta
+    if inputExists {
+      grounded, dirAlongGround := getGroundInteraction(character.Position, input.Direction)
+      character.Jump = false
+      if grounded {
+        character.Velocity = dirAlongGround.Scale(character.Speed * delta)
+        if input.Jump {
+          character.Velocity.Y += GameConfig.DefaultJumpSpeed * delta
+          character.Jump = true
+        }
+      }else {
+        character.Velocity.Y += GameConfig.Gravity * delta
+        character.Velocity.Y = math.Max(character.Velocity.Y, GameConfig.Gravity)
       }
-    }else {
-      character.Velocity.Y += GameConfig.Gravity * delta
-      character.Velocity.Y = math.Max(character.Velocity.Y, GameConfig.Gravity)
     }
     character.Velocity = clipVelocityWithCollisions(character.Position, character.Velocity)
     character.Position = character.Position.Add(character.Velocity)

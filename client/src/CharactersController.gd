@@ -23,8 +23,13 @@ func _add_character(id : String, character : Dictionary) -> void:
 		node = _character_scene.instance()
 	_character_nodes[id] = node
 	.add_child(node)
+	_update_character(id, character)
 	
 func _update_character(id : String, character : Dictionary) -> void:
 	var node : Spatial = _character_nodes[id]
 	node.global_transform.origin = Vector3(character.Position.X, character.Position.Y, character.Position.Z)
+	var dir : Dictionary = character.Velocity
+	node.animator.animate_movement(Vector3(dir.X, dir.Y, dir.Z).normalized())
+	if character.Jump: 
+		node.animator.jump()
 #	node.global_transform.basis.z = Vector3(character.Rotation.X, character.Rotation.Y, character.Rotation.Z)

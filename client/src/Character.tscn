@@ -1,6 +1,7 @@
-[gd_scene load_steps=48 format=2]
+[gd_scene load_steps=49 format=2]
 
 [ext_resource path="res://src/skin_material.tres" type="Material" id=1]
+[ext_resource path="res://src/Character.gd" type="Script" id=2]
 [ext_resource path="res://src/CharacterAnimator.gd" type="Script" id=5]
 
 [sub_resource type="ArrayMesh" id=1]
@@ -1554,6 +1555,7 @@ node_connections = [ "output", 0, "jump", "jump", 0, "iwr_time_scale", "jump", 1
 [node name="Character" type="KinematicBody"]
 collision_layer = 2
 collision_mask = 4
+script = ExtResource( 2 )
 
 [node name="Armature" type="Spatial" parent="."]
 transform = Transform( -0.3, 0, 9.77524e-08, 0, 0.3, 0, -9.77524e-08, 0, -0.3, 0, 0, 0 )
@@ -1561,19 +1563,19 @@ transform = Transform( -0.3, 0, 9.77524e-08, 0, 0.3, 0, -9.77524e-08, 0, -0.3, 0
 [node name="Main" type="Spatial" parent="Armature"]
 
 [node name="HipsControl" type="Spatial" parent="Armature/Main"]
-transform = Transform( 0, 0, -1, 0, -1, 0, -1, 0, 0, 1.57255e-10, 1.53668, -0.00111905 )
+transform = Transform( -0.00651622, 0.0963379, -0.995327, -0.00503642, -0.995339, -0.0963061, -0.999966, 0.00438534, 0.00697094, -0.061017, 1.55797, -0.00760989 )
 
 [node name="UpperLegL 2" type="Spatial" parent="Armature/Main/HipsControl"]
-transform = Transform( -0.0163616, -0.180664, -0.983409, 0.249139, 0.951782, -0.178999, 0.96833, -0.247934, 0.0294379, 0.0190356, 0.154016, -0.227592 )
+transform = Transform( -0.0499296, -0.115737, -0.992024, 0.197001, 0.972608, -0.123387, 0.979131, -0.201591, -0.0257617, 0.0190356, 0.154016, -0.227592 )
 
 [node name="LowerLegL 2" type="Spatial" parent="Armature/Main/HipsControl/UpperLegL 2"]
-transform = Transform( 0.997408, 0.0691829, 0.0197715, -0.0695197, 0.855733, 0.512727, 0.0185528, -0.512772, 0.858324, 5.11164e-08, 0.447647, -4.41427e-08 )
+transform = Transform( 0.998513, 0.0532539, 0.0116192, -0.0535131, 0.917262, 0.394674, 0.0103601, -0.394709, 0.918748, 6.19764e-08, 0.447647, 2.24452e-08 )
 
 [node name="AnkleL" type="Spatial" parent="Armature/Main/HipsControl/UpperLegL 2/LowerLegL 2"]
-transform = Transform( 0.999626, 0.00586105, 0.0267076, 0.0156636, 0.67786, -0.735024, -0.022412, 0.735168, 0.677514, 8.15175e-08, 0.509089, 1.80902e-08 )
+transform = Transform( 0.990602, 0.0631533, 0.121321, -0.0455106, 0.988669, -0.143048, -0.12898, 0.136182, 0.982252, -1.91785e-08, 0.509089, 6.1786e-08 )
 
 [node name="ToesL 2" type="Spatial" parent="Armature/Main/HipsControl/UpperLegL 2/LowerLegL 2/AnkleL"]
-transform = Transform( 0.996542, -0.0830623, -0.00233083, 0.0453465, 0.567123, -0.822384, 0.069631, 0.819434, 0.568928, 8.24382e-09, 0.420858, 1.91769e-08 )
+transform = Transform( 0.991156, -0.131508, 0.0177467, 0.0168242, -0.00812268, -0.999825, 0.131629, 0.991282, -0.00583827, 1.26287e-08, 0.420858, 8.14119e-09 )
 
 [node name="ToesL" type="MeshInstance" parent="Armature/Main/HipsControl/UpperLegL 2/LowerLegL 2/AnkleL/ToesL 2"]
 transform = Transform( -0.977879, -0.194009, 0.0781899, 0.102376, -0.117938, 0.98773, -0.182407, 0.973885, 0.135191, 0.495277, -0.109125, -0.0352875 )
@@ -1602,10 +1604,10 @@ transform = Transform( -2.86102e-06, 0.159044, -0.987272, -5.14089e-07, -0.98727
 transform = Transform( 1, 2.81472e-08, 4.22282e-08, -2.3113e-08, 0.993388, -0.114808, -4.51805e-08, 0.114808, 0.993388, 1.60982e-15, 0.294915, -5.58794e-09 )
 
 [node name="Chest 2" type="Spatial" parent="Armature/Main/HipsControl/Hips 2/Torso 2"]
-transform = Transform( 1, -7.31938e-09, 1.55156e-07, -1.16825e-08, 0.992516, 0.122116, -1.54889e-07, -0.122116, 0.992516, -3.32346e-15, 0.262646, -3.24433e-09 )
+transform = Transform( 1, -7.18724e-09, 1.55162e-07, -1.15585e-08, 0.992716, 0.120477, -1.54897e-07, -0.120477, 0.992716, -2.33147e-15, 0.262647, -1.66533e-16 )
 
 [node name="Neck 2" type="Spatial" parent="Armature/Main/HipsControl/Hips 2/Torso 2/Chest 2"]
-transform = Transform( 1, 1.62098e-09, 2.39278e-07, 1.25569e-10, 0.999973, -0.00729909, -2.39283e-07, 0.00729909, 0.999973, 7.24102e-15, 0.642611, 2.11549e-08 )
+transform = Transform( 0.935387, -0.015806, 0.353273, -0.0267986, 0.992959, 0.115383, -0.352609, -0.117395, 0.928378, -1.69554e-15, 0.642611, -5.44622e-09 )
 
 [node name="Head 2" type="Spatial" parent="Armature/Main/HipsControl/Hips 2/Torso 2/Chest 2/Neck 2"]
 transform = Transform( 1, 8.75591e-17, 6.78678e-13, -8.75597e-17, 1, 9.31322e-10, -6.78678e-13, -9.31322e-10, 1, -1.56983e-17, 0.269697, -6.67319e-10 )
@@ -1624,13 +1626,13 @@ material/0 = ExtResource( 1 )
 transform = Transform( 0.155952, 0.987765, 1.32015e-06, -0.987738, 0.155948, -0.00730213, -0.00721299, 0.00113748, 0.999973, 0.155619, 0.452355, -0.0154602 )
 
 [node name="UpperArmL 2" type="Spatial" parent="Armature/Main/HipsControl/Hips 2/Torso 2/Chest 2/ShoulderL"]
-transform = Transform( 0.196919, 0.900093, 0.388659, -0.932874, 0.29397, -0.20815, -0.301608, -0.321581, 0.897562, -6.55294e-08, 0.20678, 4.5081e-09 )
+transform = Transform( -0.580303, 0.100463, 0.80818, -0.750873, 0.318244, -0.578714, -0.315338, -0.942668, -0.109244, -1.69489e-07, 0.20678, 1.12798e-09 )
 
 [node name="LowerArmL 2" type="Spatial" parent="Armature/Main/HipsControl/Hips 2/Torso 2/Chest 2/ShoulderL/UpperArmL 2"]
-transform = Transform( 0.943904, -0.279795, 0.175379, 0.284212, 0.417949, -0.862869, 0.168127, 0.864311, 0.474025, -2.92745e-08, 0.424971, 1.60756e-08 )
+transform = Transform( 0.885983, -0.302773, 0.351231, 0.307552, -0.183203, -0.933728, 0.347055, 0.935288, -0.0691965, 2.20573e-08, 0.424971, 1.63179e-07 )
 
 [node name="HandL 2" type="Spatial" parent="Armature/Main/HipsControl/Hips 2/Torso 2/Chest 2/ShoulderL/UpperArmL 2/LowerArmL 2"]
-transform = Transform( 0.859507, 0.5109, -0.0151347, -0.480721, 0.818086, 0.315661, 0.173653, -0.264038, 0.94875, 6.12502e-08, 0.411673, -2.74336e-08 )
+transform = Transform( 0.949447, -0.285027, -0.131571, 0.286518, 0.958043, -0.00785922, 0.128291, -0.0302356, 0.991276, 5.29165e-08, 0.411673, 5.60915e-08 )
 
 [node name="FingersL 2" type="Spatial" parent="Armature/Main/HipsControl/Hips 2/Torso 2/Chest 2/ShoulderL/UpperArmL 2/LowerArmL 2/HandL 2"]
 transform = Transform( 0.931845, 0.359014, -0.0526649, -0.361822, 0.930301, -0.0602067, 0.0273792, 0.0751586, 0.996796, -3.46796e-08, 0.39942, -9.54394e-09 )
@@ -1646,7 +1648,7 @@ mesh = SubResource( 8 )
 material/0 = ExtResource( 1 )
 
 [node name="ThumbL 2" type="Spatial" parent="Armature/Main/HipsControl/Hips 2/Torso 2/Chest 2/ShoulderL/UpperArmL 2/LowerArmL 2"]
-transform = Transform( 0.333634, 0.765276, -0.550492, -0.842225, 0.504301, 0.190619, 0.423489, 0.400042, 0.812787, -6.355e-08, 0.411673, 6.72255e-08 )
+transform = Transform( 0.888949, 0.192012, -0.415813, -0.385721, 0.803393, -0.453627, 0.24696, 0.56364, 0.788237, 4.07715e-08, 0.411673, 4.32765e-08 )
 
 [node name="ThumbL" type="MeshInstance" parent="Armature/Main/HipsControl/Hips 2/Torso 2/Chest 2/ShoulderL/UpperArmL 2/LowerArmL 2/ThumbL 2"]
 transform = Transform( -0.815645, 0.519991, -0.25364, -0.574648, -0.677283, 0.459422, 0.0671093, 0.520478, 0.851234, -0.31992, 1.40803, -0.891524 )
@@ -1664,16 +1666,16 @@ mesh = SubResource( 11 )
 material/0 = ExtResource( 1 )
 
 [node name="ShoulderR" type="Spatial" parent="Armature/Main/HipsControl/Hips 2/Torso 2/Chest 2"]
-transform = Transform( 0.155953, -0.987764, -9.63919e-07, 0.987738, 0.155949, -0.00730223, 0.00721304, 0.00113786, 0.999973, -0.155619, 0.452355, -0.0154602 )
+transform = Transform( 0.155953, -0.987764, -9.72766e-07, 0.987738, 0.155949, -0.00730225, 0.00721305, 0.00113785, 0.999973, -0.155619, 0.452355, -0.0154602 )
 
 [node name="UpperArmR 2" type="Spatial" parent="Armature/Main/HipsControl/Hips 2/Torso 2/Chest 2/ShoulderR"]
-transform = Transform( 0.185491, -0.947147, -0.261736, 0.921911, 0.259929, -0.287256, 0.340107, -0.188014, 0.9214, -4.6747e-07, 0.20678, -2.51267e-08 )
+transform = Transform( -0.388629, -0.0449893, -0.920295, 0.87417, 0.297655, -0.383703, 0.291194, -0.953611, -0.0763494, 2.13751e-07, 0.20678, 1.43155e-08 )
 
 [node name="LowerArmR 2" type="Spatial" parent="Armature/Main/HipsControl/Hips 2/Torso 2/Chest 2/ShoulderR/UpperArmR 2"]
-transform = Transform( 0.974414, 0.208972, -0.0827538, -0.212271, 0.734589, -0.644453, -0.0738829, 0.64553, 0.760153, -5.05918e-07, 0.424971, -2.29584e-08 )
+transform = Transform( 0.881536, 0.299775, -0.364731, -0.304508, -0.229351, -0.924485, -0.36079, 0.926029, -0.110898, -1.30487e-07, 0.424971, -1.14128e-08 )
 
 [node name="ThumbR 2" type="Spatial" parent="Armature/Main/HipsControl/Hips 2/Torso 2/Chest 2/ShoulderR/UpperArmR 2/LowerArmR 2"]
-transform = Transform( 0.18439, -0.844638, 0.502581, 0.763792, 0.444962, 0.467579, -0.618565, 0.29765, 0.727174, 6.5669e-08, 0.411673, -2.39843e-08 )
+transform = Transform( 0.403805, -0.560004, 0.723421, 0.771986, 0.632894, 0.0590121, -0.490895, 0.534642, 0.687881, 5.994e-08, 0.411673, 3.56881e-08 )
 
 [node name="ThumbR" type="MeshInstance" parent="Armature/Main/HipsControl/Hips 2/Torso 2/Chest 2/ShoulderR/UpperArmR 2/LowerArmR 2/ThumbR 2"]
 transform = Transform( -0.837725, -0.492647, 0.23562, 0.543161, -0.70703, 0.452863, -0.0565109, 0.507354, 0.859883, 0.298513, 1.51187, -0.708374 )
@@ -1681,10 +1683,10 @@ mesh = SubResource( 12 )
 material/0 = ExtResource( 1 )
 
 [node name="HandR 2" type="Spatial" parent="Armature/Main/HipsControl/Hips 2/Torso 2/Chest 2/ShoulderR/UpperArmR 2/LowerArmR 2"]
-transform = Transform( 0.819434, -0.447799, 0.357776, 0.24401, 0.837356, 0.489177, -0.518639, -0.313548, 0.795424, 7.9124e-09, 0.411673, 3.26267e-08 )
+transform = Transform( 0.797508, -0.134974, 0.588016, 0.0604869, 0.98763, 0.144666, -0.600268, -0.0798053, 0.795807, -1.59127e-08, 0.411673, 4.52346e-08 )
 
 [node name="FingersR 2" type="Spatial" parent="Armature/Main/HipsControl/Hips 2/Torso 2/Chest 2/ShoulderR/UpperArmR 2/LowerArmR 2/HandR 2"]
-transform = Transform( 0.931845, -0.359014, 0.0526651, 0.361822, 0.930301, -0.0602067, -0.0273794, 0.0751587, 0.996796, -1.33875e-07, 0.39942, 3.84819e-09 )
+transform = Transform( 0.931845, -0.359014, 0.0526651, 0.361822, 0.930301, -0.0602066, -0.0273794, 0.0751586, 0.996796, -1.33875e-07, 0.39942, 3.84819e-09 )
 
 [node name="FingersR" type="MeshInstance" parent="Armature/Main/HipsControl/Hips 2/Torso 2/Chest 2/ShoulderR/UpperArmR 2/LowerArmR 2/HandR 2/FingersR 2"]
 transform = Transform( -0.971104, -0.0782419, 0.22548, 0.151522, -0.932039, 0.329158, 0.184402, 0.353811, 0.916959, -0.581855, 1.23737, -0.286874 )
@@ -1722,13 +1724,13 @@ mesh = SubResource( 19 )
 material/0 = ExtResource( 1 )
 
 [node name="UpperLegR 2" type="Spatial" parent="Armature/Main/HipsControl"]
-transform = Transform( 0.0182477, -0.180584, -0.98339, -0.249324, 0.951661, -0.179384, 0.968248, 0.248457, -0.0276583, 0.0190356, 0.154016, 0.227592 )
+transform = Transform( -0.0155512, -0.21337, -0.976848, -0.295307, 0.934365, -0.199389, 0.955276, 0.285369, -0.0775399, 0.0190356, 0.154016, 0.227592 )
 
 [node name="LowerLegR 2" type="Spatial" parent="Armature/Main/HipsControl/UpperLegR 2"]
-transform = Transform( 0.997408, -0.0691831, -0.0197716, 0.0695199, 0.855733, 0.512727, -0.0185529, -0.512772, 0.858324, -1.42194e-07, 0.447647, -7.48153e-09 )
+transform = Transform( 0.996773, -0.0764555, -0.0244547, 0.0768277, 0.820387, 0.566624, -0.0232592, -0.566674, 0.823613, -5.31828e-08, 0.447647, 5.56004e-09 )
 
 [node name="AnkleR" type="Spatial" parent="Armature/Main/HipsControl/UpperLegR 2/LowerLegR 2"]
-transform = Transform( 0.999576, -0.00306456, -0.028941, -0.0161401, 0.769125, -0.638894, 0.0242172, 0.639091, 0.76875, -3.77302e-09, 0.509089, 3.00582e-08 )
+transform = Transform( 0.997953, 0.0630145, -0.0109026, -0.0545514, 0.749843, -0.659363, -0.0333742, 0.658608, 0.751746, 6.21846e-08, 0.509089, 8.78731e-09 )
 
 [node name="ToesR 2" type="Spatial" parent="Armature/Main/HipsControl/UpperLegR 2/LowerLegR 2/AnkleR"]
 transform = Transform( 0.996542, 0.0830584, 0.00233277, -0.0357584, 0.454037, -0.890265, -0.0750032, 0.887103, 0.455437, -6.77828e-08, 0.420858, -5.44204e-10 )

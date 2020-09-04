@@ -79,12 +79,12 @@ func _on_match_state_received(payload) -> void:
 	var state : Dictionary = JSON.parse(payload.data).result
 	match code:
 		OpCodes.STATE_INIT:
-			_world.character_state.set_characters(state.Characters)
+			_world.characters_controller.set_characters(state.Characters)
 			call_deferred("set_physics_process", true)
 		OpCodes.STATE_UPDATE:
-			_world.character_state.set_characters(state.Characters)
+			_world.characters_controller.set_characters(state.Characters)
 		OpCodes.SET_JOIN_CONFIG:
-			_world.character_state.client_player_character_id = state.CharacterId
+			_world.characters_controller.client_player_character_id = state.CharacterId
 
 func _physics_process(_delta):
 	var payload := { 

@@ -87,7 +87,7 @@ func getGroundInteraction(position, inputDir Vector3) (bool, Vector3) {
 }
 
 func clipVelocityWithCollisions(position Vector3, velocity Vector3) Vector3 {
-  hit, point, _ := getClosestLineIntersection(position, position.Add(velocity), worldMesh)
+  hit, point, _ := getClosestLineIntersection(position, adjustedPosition.Add(velocity), worldMesh)
 
   if hit {
     return point.Subtract(position)
