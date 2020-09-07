@@ -59,6 +59,7 @@ type PublicMatchState struct {
 type PrivateMatchState struct {
   Presences map[string]runtime.Presence
   UserIdToCharacterIdMap map[string]string
+  CharacterIntersectedTriangles map[string][]Triangle
 }
 
 type MatchState struct {
@@ -73,6 +74,7 @@ func (m *Match) MatchInit(ctx context.Context, logger runtime.Logger, db *sql.DB
       Private: PrivateMatchState{
         Presences: make(map[string]runtime.Presence),
         UserIdToCharacterIdMap: make(map[string]string),
+        CharacterIntersectedTriangles: make(map[string][]Triangle),
       },
       Public: PublicMatchState{
         Characters: make(map[string]CharacterState),
@@ -99,6 +101,7 @@ func (m *Match) MatchJoin(ctx context.Context, logger runtime.Logger, db *sql.DB
       characterId := characterUUID.String()
       mState.Private.Presences[p.GetUserId()] = p
       mState.Private.UserIdToCharacterIdMap[p.GetUserId()] = characterId
+      mState.Private.CharacterIntersectedTriangles[p.GetUserId()] = []Triangle{}
       mState.Public.Characters[characterId] = CharacterState{
         Name: p.GetUsername(),
         Health: GameConfig.DefaultHealth,
@@ -157,23 +160,34 @@ func (m *Match) MatchLoop(ctx context.Context, logger runtime.Logger, db *sql.DB
 
   for id, character := range mState.Public.Characters {
     input, inputExists := characterInputMap[id]
+    character.Jump = false
+    hitBox := GameConfig.DefaultHitBox
+    hitBox.Center = hitBox.Center.Add(character.Position)
+
+    inputVel := character.Velocity
+
     if inputExists {
-      grounded, dirAlongGround := getGroundInteraction(character.Position, input.Direction)
-      character.Jump = false
-      if grounded {
-        character.Velocity = dirAlongGround.Scale(character.Speed * delta)
-        if input.Jump {
-          character.Velocity.Y += GameConfig.DefaultJumpSpeed * delta
-          character.Jump = true
-        }
-      }else {
-        character.Velocity.Y += GameConfig.Gravity * delta
-        character.Velocity.Y = math.Max(character.Velocity.Y, GameConfig.Gravity)
-      }
+      inputVel = input.Direction.Normalize().Scale(character.Speed * delta)
     }
-    character.Velocity = clipVelocityWithCollisions(character.Position, character.Velocity)
+
+    intersectedTris := mState.Private.CharacterIntersectedTriangles[id]
+    grounded, groundAdjustedVel := getGroundAdjustedVelocity(hitBox, inputVel, intersectedTris)
+
+    if grounded {
+      character.Velocity = groundAdjustedVel
+      if inputExists && input.Jump {
+        character.Velocity.Y += GameConfig.DefaultJumpSpeed * delta
+        character.Jump = true
+      }
+    }else {
+      character.Velocity.Y += GameConfig.Gravity * delta
+      character.Velocity.Y = math.Max(character.Velocity.Y, GameConfig.Gravity)
+    }
+
+    character.Velocity = getCollisionAdjustedVelocity(hitBox, character.Velocity, &intersectedTris)
     character.Position = character.Position.Add(character.Velocity)
     mState.Public.Characters[id] = character
+    mState.Private.CharacterIntersectedTriangles[id] = intersectedTris
   }
 
 
