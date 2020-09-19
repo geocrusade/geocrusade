@@ -86,14 +86,21 @@ func _on_match_state_received(payload) -> void:
 		OpCodes.SET_JOIN_CONFIG:
 			_world.characters_controller.client_player_character_id = state.CharacterId
 
-func _physics_process(_delta):
-	var payload := { 
+func _physics_process(delta):
+	var dir = Vector3(
+		Input.get_action_strength("move_right") - Input.get_action_strength("move_left"), 
+		 0, 
+		Input.get_action_strength("move_backward") - Input.get_action_strength("move_forward") 
+	)
+	var input := { 
 		Direction = {
-			X = Input.get_action_strength("move_right") - Input.get_action_strength("move_left"), 
-			Y = 0, 
-			Z = Input.get_action_strength("move_backward") - Input.get_action_strength("move_forward") 
+			X = dir.x, 
+			Y = dir.y, 
+			Z = dir.z, 
 		}, 
 		Jump = Input.is_action_just_pressed("jump"), 
 		ClientTick = 0 
 	}
-	_socket.send_match_state_async(_world.id, OpCodes.INPUT_UPDATE, JSON.print(payload))
+	_world.characters_controller.update_client_player_input(dir, input.Jump, delta)
+	_socket.send_match_state_async(_world.id, OpCodes.INPUT_UPDATE, JSON.print(input))
+

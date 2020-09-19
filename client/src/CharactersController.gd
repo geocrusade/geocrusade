@@ -1,6 +1,5 @@
 extends Spatial
 
-
 onready var _client_player_scene := preload("res://src/ClientPlayer.tscn")
 onready var _character_scene := preload("res://src/Character.tscn")
 
@@ -14,6 +13,16 @@ func set_characters(characters : Dictionary) -> void:
 			_add_character(id, characters[id])
 		else:
 			_update_character(id, characters[id])
+
+
+func update_client_player_input(dir : Vector3, jump : bool, delta : float) -> void:
+	if client_player_character_id == "":
+		return
+	var character = _character_nodes[client_player_character_id]
+	if character == null:
+		return
+		
+	character.update_input(dir, jump, delta)
 
 func _add_character(id : String, character : Dictionary) -> void:
 	var node : Spatial = null
@@ -33,3 +42,7 @@ func _update_character(id : String, character : Dictionary) -> void:
 	if character.Jump: 
 		node.animator.jump()
 #	node.global_transform.basis.z = Vector3(character.Rotation.X, character.Rotation.Y, character.Rotation.Z)
+
+	
+	
+		
